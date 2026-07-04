@@ -61,7 +61,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-[#FAF7F2] relative overflow-hidden">
+    <div className="h-screen w-full flex bg-[#FAF7F2] relative overflow-hidden">
       {/* Back Button */}
       <Link
         href="/"
@@ -73,9 +73,9 @@ export default function LoginPage() {
       {/* Left Column - Cover Image (Hidden on Mobile) */}
       <div className="hidden md:flex md:w-[42%] relative overflow-hidden h-screen select-none">
         <img
-          src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=80"
-          alt="Dorcy Vogue Atelier"
-          className="absolute inset-0 w-full h-full object-cover brightness-[0.55]"
+          src="/login-photo.jpg"
+          alt="Dorcy Vogue Shopping Bags"
+          className="absolute inset-0 w-full h-full object-cover brightness-[0.7]"
         />
         {/* Shadow overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#120E0D]/90 via-[#120E0D]/20 to-transparent" />
@@ -92,8 +92,8 @@ export default function LoginPage() {
       </div>
 
       {/* Right Column - Form */}
-      <div className="w-full md:w-[58%] flex items-center justify-center p-6 sm:p-12 md:p-16 h-screen overflow-y-auto pt-24 md:pt-16">
-        <div className="w-full max-w-md space-y-8">
+      <div className="w-full md:w-[58%] flex items-start justify-center p-6 sm:p-12 md:p-16 h-screen overflow-y-auto pt-24 pb-12 md:py-16">
+        <div className="w-full max-w-md space-y-6 lg:space-y-8 my-auto">
           {/* Segmented Tab Controls */}
           <div className="flex bg-[#F5EFE6] p-1 rounded-xl w-full">
             <button
