@@ -129,7 +129,9 @@ export default function AdminDashboardPage() {
                   {recentOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-[#FAF7F2]/50 transition-colors">
                       <td className="px-6 py-4">
-                        <p className="font-sans text-sm font-semibold text-[#C9956A]">{order.id}</p>
+                        <Link href={`/admin/orders/${order.id}`} className="hover:underline inline-block">
+                          <p className="font-sans text-sm font-semibold text-[#C9956A]">{order.id}</p>
+                        </Link>
                         <p className="font-sans text-sm text-[#1C1512]">{order.customer}</p>
                       </td>
                       <td className="px-6 py-4 text-right">

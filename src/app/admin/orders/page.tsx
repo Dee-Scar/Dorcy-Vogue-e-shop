@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import { Search, Filter, Download, Eye } from "lucide-react";
+import Link from "next/link";
 
 type OrderStatus = "Delivered" | "Shipped" | "Preparing" | "Awaiting Verification" | "Pending Payment" | "Payment Confirmed";
 
@@ -139,9 +140,12 @@ export default function OrdersPage() {
                     <span className="font-sans text-sm text-[#8C8682]">{order.date}</span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <button className="p-1.5 text-[#8C8682] hover:text-[#C9956A] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer">
+                    <Link
+                      href={`/admin/orders/${order.id}`}
+                      className="inline-flex p-1.5 text-[#8C8682] hover:text-[#C9956A] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
+                    >
                       <Eye className="h-4 w-4" />
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               ))}
