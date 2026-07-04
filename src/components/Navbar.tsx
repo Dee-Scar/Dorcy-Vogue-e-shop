@@ -196,6 +196,38 @@ export const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
+
+              {/* Auth section in mobile menu */}
+              <div className="pt-2 border-t border-[#FAF7F2]">
+                {user ? (
+                  <div className="space-y-2">
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-base font-medium text-[#1C1512] hover:bg-[#FAF7F2] hover:text-[#B78A62] transition-colors"
+                    >
+                      <UserIcon className="h-5 w-5 text-[#B78A62]" />
+                      Hi, {user.name.split(" ")[0]}
+                    </Link>
+                    <button
+                      onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-base font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="h-5 w-5" />
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-base font-medium text-[#1C1512] hover:bg-[#FAF7F2] hover:text-[#B78A62] transition-colors"
+                  >
+                    <UserIcon className="h-5 w-5 text-[#B78A62]" />
+                    Sign In
+                  </Link>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
