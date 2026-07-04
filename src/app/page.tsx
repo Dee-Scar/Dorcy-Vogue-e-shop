@@ -54,12 +54,12 @@ export default function Home() {
         {/* Background Image Parallax Effect */}
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1920&q=80"
-            alt="DORCY VOGUE Elegant Red Dress"
-            className="w-full h-full object-cover brightness-[0.4]"
+            src="/hero-store.jpg"
+            alt="DORCY VOGUE Store Interior"
+            className="w-full h-full object-cover brightness-[0.45]"
           />
           {/* Subtle overlay gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1C1512]/60 via-[#1C1512]/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1C1512]/70 via-[#1C1512]/25 to-transparent" />
         </div>
 
         {/* Content */}
