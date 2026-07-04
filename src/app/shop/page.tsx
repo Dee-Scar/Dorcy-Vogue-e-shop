@@ -9,6 +9,7 @@ import { CheckoutModal } from "@/components/CheckoutModal";
 import { Search, ChevronDown, SlidersHorizontal, X } from "lucide-react";
 import { PRODUCTS, Product } from "@/data/products";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 const CATEGORIES = [
   "Baggy Jeans",
@@ -169,18 +170,27 @@ export default function ShopPage() {
           <div className="flex-grow space-y-6">
             
             {/* Page Header */}
-            <div className="flex items-center justify-between">
-              <h1 className="font-serif text-3xl font-bold text-[#1C1512] tracking-wide">
-                Shop
-              </h1>
-              {/* Mobile Filter Button */}
-              <button
-                onClick={() => setShowMobileFilters(true)}
-                className="lg:hidden flex items-center space-x-1.5 px-4 py-2 border border-[#1C1512]/10 rounded-full text-xs font-semibold font-sans bg-white text-[#1C1512] shadow-sm cursor-pointer"
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5" />
-                <span>Filters</span>
-              </button>
+            <div className="flex flex-col gap-1">
+              <nav className="flex items-center space-x-2 text-xs text-[#8C8682] font-sans">
+                <Link href="/" className="hover:text-[#B78A62] transition-colors">
+                  Home
+                </Link>
+                <span>/</span>
+                <span className="text-[#1C1512] font-medium">Shop</span>
+              </nav>
+              <div className="flex items-center justify-between mt-1">
+                <h1 className="font-serif text-3xl font-bold text-[#1C1512] tracking-wide">
+                  Shop
+                </h1>
+                {/* Mobile Filter Button */}
+                <button
+                  onClick={() => setShowMobileFilters(true)}
+                  className="lg:hidden flex items-center space-x-1.5 px-4 py-2 border border-[#1C1512]/10 rounded-full text-xs font-semibold font-sans bg-white text-[#1C1512] shadow-sm cursor-pointer"
+                >
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  <span>Filters</span>
+                </button>
+              </div>
             </div>
 
             {/* Search and Sort Toolbar */}
