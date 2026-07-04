@@ -6,12 +6,12 @@ import Link from "next/link";
 import { Plus, Search, Filter, Edit, Trash2, Eye } from "lucide-react";
 
 const mockProducts = [
-  { id: "DVP-001", name: "Baggy Jeans", category: "Bottoms", price: "₦45,000", stock: 12, status: "Active", image: "/about-photo.jpg" },
+  { id: "DVP-001", name: "Baggy Jeans", category: "Jeans", price: "₦45,000", stock: 12, status: "Active", image: "/about-photo.jpg" },
   { id: "DVP-002", name: "Oversized Blazer", category: "Tops", price: "₦78,000", stock: 5, status: "Active", image: "/about-photo.jpg" },
-  { id: "DVP-003", name: "Linen Co-ord Set", category: "Sets", price: "₦95,000", stock: 0, status: "Out of Stock", image: "/about-photo.jpg" },
+  { id: "DVP-003", name: "Linen Two Piece Set", category: "Two Piece Sets", price: "₦95,000", stock: 0, status: "Out of Stock", image: "/about-photo.jpg" },
   { id: "DVP-004", name: "Midi Slip Dress", category: "Dresses", price: "₦55,000", stock: 8, status: "Active", image: "/about-photo.jpg" },
-  { id: "DVP-005", name: "Wide-Leg Trousers", category: "Bottoms", price: "₦38,000", stock: 3, status: "Low Stock", image: "/about-photo.jpg" },
-  { id: "DVP-006", name: "Crop Corset Top", category: "Tops", price: "₦28,000", stock: 15, status: "Active", image: "/about-photo.jpg" },
+  { id: "DVP-005", name: "Leather Tote Bag", category: "Bags", price: "₦38,000", stock: 3, status: "Low Stock", image: "/about-photo.jpg" },
+  { id: "DVP-006", name: "Embellished Slides", category: "Slides", price: "₦28,000", stock: 15, status: "Active", image: "/about-photo.jpg" },
 ];
 
 const statusStyle: Record<string, string> = {

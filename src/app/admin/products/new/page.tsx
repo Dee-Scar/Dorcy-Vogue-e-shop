@@ -14,7 +14,7 @@ const COLORS = [
   { name: "Dark Green", hex: "#2D4A3E" },
   { name: "Navy", hex: "#1B2A4A" },
 ];
-const CATEGORIES = ["Tops", "Bottoms", "Dresses", "Sets", "Outerwear", "Accessories"];
+const CATEGORIES = ["Jeans", "Dresses", "Bags", "Tops", "Slides", "Two Piece Sets"];
 
 export default function AddNewProductPage() {
   const router = useRouter();
