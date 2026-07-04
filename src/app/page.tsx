@@ -300,9 +300,9 @@ export default function Home() {
               className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg bg-[#FAF7F2] border border-[#1C1512]/5"
             >
               <img
-                src="https://images.unsplash.com/photo-1558603668-6570496b66f8?auto=format&fit=crop&w=800&q=80"
-                alt="Dorcy Vogue Fashion Atelier"
-                className="w-full h-full object-cover"
+                src="/about-photo.jpg"
+                alt="Dorcy Vogue Brand Model with Shopping Bags"
+                className="w-full h-full object-cover object-top"
                 loading="lazy"
               />
             </motion.div>
