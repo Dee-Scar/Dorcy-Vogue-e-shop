@@ -34,7 +34,7 @@ export default function AdminSidebar() {
   const { adminLogout } = useAdminAuth();
 
   return (
-    <aside className="w-[200px] min-h-screen bg-[#1C1007] flex flex-col flex-shrink-0">
+    <aside className="w-[200px] h-full bg-[#1C1007] flex flex-col flex-shrink-0">
       {/* Logo */}
       <div className="px-6 py-7 border-b border-white/10">
         <span className="font-serif text-base tracking-widest text-white">

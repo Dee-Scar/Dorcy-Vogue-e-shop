@@ -26,9 +26,11 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F7F5F2]">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-[#F7F5F2]">
+      <div className="h-screen overflow-y-auto flex-shrink-0">
+        <AdminSidebar />
+      </div>
+      <div className="flex-1 flex flex-col h-screen overflow-y-auto">
         {children}
       </div>
     </div>
