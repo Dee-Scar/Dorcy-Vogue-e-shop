@@ -48,7 +48,7 @@ export default function WhatsAppPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Top Header */}
-      <header className="h-14 sm:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
+      <header className="py-3 sm:h-16 bg-white border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-8 flex-shrink-0 gap-3 sm:gap-0">
         <div className="flex items-center gap-3">
           <MobileMenuButton />
           <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">WhatsApp Integration</h1>

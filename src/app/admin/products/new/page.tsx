@@ -75,8 +75,8 @@ export default function AddNewProductPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Custom topbar for this page */}
-      <header className="h-14 sm:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
-        <div className="flex items-center gap-3">
+      <header className="py-3 sm:h-16 bg-white border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-8 flex-shrink-0 gap-3 sm:gap-0">
+        <div className="flex items-center gap-2 sm:gap-3">
           <MobileMenuButton />
           <Link
             href="/admin/products"
@@ -84,19 +84,19 @@ export default function AddNewProductPage() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">Add New Product</h1>
+          <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512] truncate max-w-[200px] sm:max-w-none">Add New Product</h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <Link
             href="/admin/products"
-            className="px-5 py-2 bg-white border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-semibold font-sans rounded-xl transition-colors"
+            className="flex-1 sm:flex-none text-center px-4 sm:px-5 py-2 bg-white border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-semibold font-sans rounded-xl transition-colors"
           >
             Cancel
           </Link>
           <button
             form="product-form"
             type="submit"
-            className="px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
+            className="flex-1 sm:flex-none px-4 sm:px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
           >
             Save Product
           </button>

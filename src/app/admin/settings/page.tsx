@@ -24,17 +24,18 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Top Header */}
-      <header className="h-14 sm:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
+      <header className="py-3 sm:h-16 bg-white border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-8 flex-shrink-0 gap-3 sm:gap-0">
         <div className="flex items-center gap-3">
           <MobileMenuButton />
           <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">Settings</h1>
         </div>
         <button
           onClick={handleSave}
-          className="flex items-center gap-2 px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
+          className="flex items-center justify-center gap-2 px-5 py-2 w-full sm:w-auto bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
         >
           <Save className="w-4 h-4" />
-          Save Settings
+          <span className="hidden sm:inline">Save Settings</span>
+          <span className="inline sm:hidden">Save</span>
         </button>
       </header>
 

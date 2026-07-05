@@ -62,25 +62,27 @@ export default function CMSPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Top Header */}
-      <header className="h-14 sm:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
+      <header className="py-3 sm:h-16 bg-white border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-8 flex-shrink-0 gap-3 sm:gap-0">
         <div className="flex items-center gap-3">
           <MobileMenuButton />
           <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">Content Management</h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <button
             onClick={handlePreview}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-sans font-medium rounded-xl transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-sans font-medium rounded-xl transition-colors cursor-pointer flex-1 sm:flex-none"
           >
             <Eye className="h-4 w-4" />
-            Preview Site
+            <span className="hidden sm:inline">Preview Site</span>
+            <span className="inline sm:hidden">Preview</span>
           </button>
           <button
             onClick={handlePublish}
-            className="flex items-center gap-2 px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
+            className="flex items-center justify-center gap-2 px-3 sm:px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer flex-1 sm:flex-none"
           >
             <Globe className="h-4 w-4" />
-            Publish Changes
+            <span className="hidden sm:inline">Publish Changes</span>
+            <span className="inline sm:hidden">Publish</span>
           </button>
         </div>
       </header>

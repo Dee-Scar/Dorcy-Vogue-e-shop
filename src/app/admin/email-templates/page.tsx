@@ -95,17 +95,18 @@ export default function EmailTemplatesPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Top Header */}
-      <header className="h-14 sm:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
+      <header className="py-3 sm:h-16 bg-white border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-8 flex-shrink-0 gap-3 sm:gap-0">
         <div className="flex items-center gap-3">
           <MobileMenuButton />
           <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">Email Templates</h1>
         </div>
         <button
           onClick={() => alert("Create template layout coming soon!")}
-          className="flex items-center gap-2 px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
+          className="flex items-center justify-center gap-2 px-5 py-2 w-full sm:w-auto bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          New Template
+          <span className="hidden sm:inline">New Template</span>
+          <span className="inline sm:hidden">New</span>
         </button>
       </header>
 
@@ -147,17 +148,17 @@ export default function EmailTemplatesPage() {
                 <FileText className="w-5 h-5 text-[#C9956A]" />
                 <h2 className="font-serif text-lg font-bold text-[#1C1512]">{selectedTemplate.name}</h2>
               </div>
-              <div className="flex items-center gap-2.5">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mt-3 sm:mt-0">
                 <button
                   onClick={handleSendTest}
-                  className="flex items-center gap-2 px-4 py-2 border border-gray-200 hover:border-gray-300 text-[#1C1512] text-xs font-bold font-sans rounded-xl transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 border border-gray-200 hover:border-gray-300 text-[#1C1512] text-xs font-bold font-sans rounded-xl transition-colors cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                   Send Test
                 </button>
                 <button
                   onClick={handleSave}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-xs font-bold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-xs font-bold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
                 >
                   <Save className="w-3.5 h-3.5" />
                   Save

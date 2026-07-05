@@ -37,9 +37,9 @@ export default function ProductsPage() {
       <main className="flex-1 overflow-y-auto p-8 space-y-6">
         {/* Toolbar */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto flex-1 min-w-0">
             {/* Search */}
-            <div className="relative flex-1 max-w-sm">
+            <div className="relative flex-1 sm:max-w-sm">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#8C8682]" />
               <input
                 type="text"
@@ -49,18 +49,19 @@ export default function ProductsPage() {
                 className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
               />
             </div>
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-sans font-medium text-[#8C8682] hover:border-[#C9956A] transition-colors">
+            <button className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-sans font-medium text-[#8C8682] hover:border-[#C9956A] transition-colors">
               <Filter className="h-4 w-4" />
-              Filter
+              <span className="hidden sm:inline">Filter</span>
             </button>
           </div>
 
           <Link
             href="/admin/products/new"
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#1C1007] hover:bg-[#2E1E0F] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 w-full sm:w-auto bg-[#1C1007] hover:bg-[#2E1E0F] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm"
           >
             <Plus className="h-4 w-4" />
-            Add New Product
+            <span className="hidden sm:inline">Add New Product</span>
+            <span className="inline sm:hidden">Add Product</span>
           </Link>
         </div>
 
@@ -81,18 +82,19 @@ export default function ProductsPage() {
 
         {/* Table */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-[#FAF7F2] border-b border-gray-100">
-                <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Product</th>
-                <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Category</th>
-                <th className="text-right px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Price</th>
-                <th className="text-center px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Stock</th>
-                <th className="text-center px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Status</th>
-                <th className="text-center px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px]">
+              <thead>
+                <tr className="bg-[#FAF7F2] border-b border-gray-100">
+                  <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider whitespace-nowrap">Product</th>
+                  <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider whitespace-nowrap">Category</th>
+                  <th className="text-right px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider whitespace-nowrap">Price</th>
+                  <th className="text-center px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider whitespace-nowrap">Stock</th>
+                  <th className="text-center px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider whitespace-nowrap">Status</th>
+                  <th className="text-center px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider whitespace-nowrap">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
               {filtered.map((product) => (
                 <tr key={product.id} className="hover:bg-[#FAF7F2]/40 transition-colors">
                   <td className="px-6 py-4">
@@ -138,7 +140,8 @@ export default function ProductsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
 
           {filtered.length === 0 && (
             <div className="py-16 text-center">
