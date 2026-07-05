@@ -87,7 +87,7 @@ export default function Home() {
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             <a
-              href="#products"
+              href="/shop"
               className="inline-block px-8 py-4 bg-[#B78A62] hover:bg-[#9E734D] text-white font-sans text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
             >
               Shop Now
