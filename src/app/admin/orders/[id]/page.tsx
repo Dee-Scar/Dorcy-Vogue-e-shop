@@ -161,26 +161,26 @@ export default function OrderDetailsPage() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm min-w-[700px]">
                   <thead>
                     <tr className="bg-[#FAF7F2] text-[#8C8682]">
-                      <th className="text-left px-6 py-3 font-semibold font-sans">Product</th>
-                      <th className="text-center px-4 py-3 font-semibold font-sans">Size</th>
-                      <th className="text-center px-4 py-3 font-semibold font-sans">Color</th>
-                      <th className="text-center px-4 py-3 font-semibold font-sans">Qty</th>
-                      <th className="text-right px-4 py-3 font-semibold font-sans">Price</th>
-                      <th className="text-right px-6 py-3 font-semibold font-sans">Total</th>
+                      <th className="text-left px-6 py-3 font-semibold font-sans whitespace-nowrap">Product</th>
+                      <th className="text-center px-4 py-3 font-semibold font-sans whitespace-nowrap">Size</th>
+                      <th className="text-center px-4 py-3 font-semibold font-sans whitespace-nowrap">Color</th>
+                      <th className="text-center px-4 py-3 font-semibold font-sans whitespace-nowrap">Qty</th>
+                      <th className="text-right px-4 py-3 font-semibold font-sans whitespace-nowrap">Price</th>
+                      <th className="text-right px-6 py-3 font-semibold font-sans whitespace-nowrap">Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {orderDetails.items.map((item, index) => (
                       <tr key={index}>
-                        <td className="px-6 py-4 font-semibold text-[#1C1512] font-sans">{item.name}</td>
-                        <td className="px-4 py-4 text-center font-sans">{item.size}</td>
-                        <td className="px-4 py-4 text-center font-sans">{item.color}</td>
-                        <td className="px-4 py-4 text-center font-semibold text-[#1C1512] font-sans">{item.qty}</td>
-                        <td className="px-4 py-4 text-right font-sans">₦{item.price.toLocaleString()}</td>
-                        <td className="px-6 py-4 text-right font-semibold text-[#1C1512] font-sans">₦{(item.price * item.qty).toLocaleString()}</td>
+                        <td className="px-6 py-4 font-semibold text-[#1C1512] font-sans whitespace-nowrap">{item.name}</td>
+                        <td className="px-4 py-4 text-center font-sans whitespace-nowrap">{item.size}</td>
+                        <td className="px-4 py-4 text-center font-sans whitespace-nowrap">{item.color}</td>
+                        <td className="px-4 py-4 text-center font-semibold text-[#1C1512] font-sans whitespace-nowrap">{item.qty}</td>
+                        <td className="px-4 py-4 text-right font-sans whitespace-nowrap">₦{item.price.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-right font-semibold text-[#1C1512] font-sans whitespace-nowrap">₦{(item.price * item.qty).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>

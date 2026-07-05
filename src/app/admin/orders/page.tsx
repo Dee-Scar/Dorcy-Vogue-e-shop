@@ -90,7 +90,7 @@ export default function OrdersPage() {
 
       <main className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-0">
         {/* Status Tabs */}
-        <div className="flex items-center gap-1 mb-6">
+        <div className="flex items-center gap-1 mb-6 overflow-x-auto pb-2 scrollbar-none">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.filter;
             return (
@@ -111,50 +111,52 @@ export default function OrdersPage() {
 
         {/* Orders Table */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-[#FAF7F2] border-b border-gray-100">
-                <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Order #/Customer</th>
-                <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Phone</th>
-                <th className="text-right px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Amount</th>
-                <th className="text-center px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Status</th>
-                <th className="text-right px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Date</th>
-                <th className="text-center px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map((order) => (
-                <tr key={order.id} className="hover:bg-[#FAF7F2]/40 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="font-sans text-sm font-semibold text-[#C9956A]">{order.id}</p>
-                    <p className="font-sans text-sm text-[#1C1512]">{order.customer}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-sans text-sm text-[#8C8682]">{order.phone}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="font-sans text-sm font-semibold text-[#1C1512]">{order.amount}</span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold font-sans ${statusStyle[order.status]}`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="font-sans text-sm text-[#8C8682]">{order.date}</span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Link
-                      href={`/admin/orders/${order.id}`}
-                      className="inline-flex p-1.5 text-[#8C8682] hover:text-[#C9956A] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Link>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px]">
+              <thead>
+                <tr className="bg-[#FAF7F2] border-b border-gray-100">
+                  <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Order #/Customer</th>
+                  <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Phone</th>
+                  <th className="text-right px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Amount</th>
+                  <th className="text-center px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Status</th>
+                  <th className="text-right px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Date</th>
+                  <th className="text-center px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtered.map((order) => (
+                  <tr key={order.id} className="hover:bg-[#FAF7F2]/40 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <p className="font-sans text-sm font-semibold text-[#C9956A]">{order.id}</p>
+                      <p className="font-sans text-sm text-[#1C1512]">{order.customer}</p>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="font-sans text-sm text-[#8C8682]">{order.phone}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <span className="font-sans text-sm font-semibold text-[#1C1512]">{order.amount}</span>
+                    </td>
+                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold font-sans ${statusStyle[order.status]}`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <span className="font-sans text-sm text-[#8C8682]">{order.date}</span>
+                    </td>
+                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="inline-flex p-1.5 text-[#8C8682] hover:text-[#C9956A] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {filtered.length === 0 && (
             <div className="py-16 text-center">
