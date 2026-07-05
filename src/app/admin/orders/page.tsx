@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
+import MobileMenuButton from "@/components/admin/MobileMenuButton";
 import { Search, Filter, Download, Eye } from "lucide-react";
 import Link from "next/link";
 
@@ -59,8 +60,11 @@ export default function OrdersPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Custom topbar */}
-      <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 flex-shrink-0">
-        <h1 className="font-sans text-xl font-semibold text-[#1C1512]">Orders</h1>
+      <header className="h-14 sm:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <MobileMenuButton />
+          <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">Orders</h1>
+        </div>
         <div className="flex items-center gap-3">
           {/* Search */}
           <div className="relative">
@@ -84,7 +88,7 @@ export default function OrdersPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-8 space-y-0">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-0">
         {/* Status Tabs */}
         <div className="flex items-center gap-1 mb-6">
           {tabs.map((tab) => {

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
+import MobileMenuButton from "@/components/admin/MobileMenuButton";
 import { Plus, Edit2, Trash2, GripVertical, Star } from "lucide-react";
 
 interface Category {
@@ -64,8 +65,11 @@ export default function CategoriesPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0 relative">
       {/* Header */}
-      <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 flex-shrink-0">
-        <h1 className="font-sans text-xl font-semibold text-[#1C1512]">Categories</h1>
+      <header className="h-14 sm:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <MobileMenuButton />
+          <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">Categories</h1>
+        </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="flex items-center gap-2 px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
@@ -76,7 +80,7 @@ export default function CategoriesPage() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-8">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <table className="w-full">
             <thead>

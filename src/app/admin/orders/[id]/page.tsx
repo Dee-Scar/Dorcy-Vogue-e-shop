@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import MobileMenuButton from "@/components/admin/MobileMenuButton";
 import { ArrowLeft, User, Phone, Mail, MapPin, CheckCircle, FileText, ExternalLink, Truck } from "lucide-react";
 
 type OrderStatus = "Pending Payment" | "Awaiting Verification" | "Payment Confirmed" | "Preparing Order" | "Driver Assigned" | "Shipped" | "Delivered";
@@ -93,15 +94,16 @@ export default function OrderDetailsPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
-      <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 flex-shrink-0">
+      <header className="h-14 sm:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
         <div className="flex items-center gap-3">
+          <MobileMenuButton />
           <Link
             href="/admin/orders"
             className="p-1.5 text-[#8C8682] hover:text-[#1C1512] hover:bg-[#FAF7F2] rounded-lg transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="font-sans text-xl font-semibold text-[#1C1512]">Order {orderDetails.id}</h1>
+          <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">Order {orderDetails.id}</h1>
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold font-sans bg-orange-50 text-orange-600">
             {orderDetails.status}
           </span>
@@ -109,7 +111,7 @@ export default function OrderDetailsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-8">
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
           
           {/* Left Column: Customer & Items */}

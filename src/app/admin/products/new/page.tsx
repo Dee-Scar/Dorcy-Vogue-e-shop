@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AdminTopbar from "@/components/admin/AdminTopbar";
+import MobileMenuButton from "@/components/admin/MobileMenuButton";
 import { ArrowLeft, ImagePlus, X } from "lucide-react";
 import Link from "next/link";
 
@@ -74,15 +75,16 @@ export default function AddNewProductPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Custom topbar for this page */}
-      <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 flex-shrink-0">
+      <header className="h-14 sm:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
         <div className="flex items-center gap-3">
+          <MobileMenuButton />
           <Link
             href="/admin/products"
             className="p-1.5 text-[#8C8682] hover:text-[#1C1512] hover:bg-[#FAF7F2] rounded-lg transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="font-sans text-xl font-semibold text-[#1C1512]">Add New Product</h1>
+          <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">Add New Product</h1>
         </div>
         <div className="flex items-center gap-3">
           <Link
@@ -101,7 +103,7 @@ export default function AddNewProductPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-8">
         <form id="product-form" onSubmit={handleSave}>
           <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-6">
             {/* Left Column */}

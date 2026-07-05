@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
+import MobileMenuButton from "@/components/admin/MobileMenuButton";
 import { Plus, Send, Save, Mail, FileText } from "lucide-react";
 
 interface EmailTemplate {
@@ -94,8 +95,11 @@ export default function EmailTemplatesPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Top Header */}
-      <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 flex-shrink-0">
-        <h1 className="font-sans text-xl font-semibold text-[#1C1512]">Email Templates</h1>
+      <header className="h-14 sm:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <MobileMenuButton />
+          <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">Email Templates</h1>
+        </div>
         <button
           onClick={() => alert("Create template layout coming soon!")}
           className="flex items-center gap-2 px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
@@ -106,7 +110,7 @@ export default function EmailTemplatesPage() {
       </header>
 
       {/* Main Grid */}
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
           {/* Left Column: Template List */}
           <div className="space-y-3">
