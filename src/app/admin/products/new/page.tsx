@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import AdminTopbar from "@/components/admin/AdminTopbar";
+import React, { useState, useRef, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
-import { ArrowLeft, ImagePlus, X } from "lucide-react";
+import { ArrowLeft, ImagePlus, X, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 const COLORS = [
@@ -15,10 +15,12 @@ const COLORS = [
   { name: "Dark Green", hex: "#2D4A3E" },
   { name: "Navy", hex: "#1B2A4A" },
 ];
-const CATEGORIES = ["Jeans", "Dresses", "Bags", "Tops", "Slides", "Two Piece Sets"];
+const FALLBACK_CATEGORIES = ["Jeans", "Dresses", "Bags", "Tops", "Slides", "Two Piece Sets"];
 
-export default function AddNewProductPage() {
+function ProductForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const productId = searchParams.get("id");
 
   // Form state
   const [name, setName] = useState("");
@@ -31,8 +33,57 @@ export default function AddNewProductPage() {
   const [selectedColors, setSelectedColors] = useState<string[]>(["Black"]);
   const [status, setStatus] = useState("Active");
   const [images, setImages] = useState<string[]>([]);
+  const [dbCategories, setDbCategories] = useState<string[]>([]);
+  
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [loading, setLoading] = useState(!!productId);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    // Fetch categories from the database
+    async function fetchCategories() {
+      const { data } = await supabase
+        .from("categories")
+        .select("name")
+        .eq("status", "Active")
+        .order("name");
+      if (data) setDbCategories(data.map(c => c.name));
+    }
+    fetchCategories();
+
+    if (productId) {
+      async function fetchProduct() {
+        try {
+          const { data, error } = await supabase
+            .from("products")
+            .select("*")
+            .eq("id", productId)
+            .single();
+
+          if (error) throw error;
+
+          if (data) {
+            setName(data.name || "");
+            setDescription(data.description || "");
+            setPrice(data.price?.toString() || "");
+            setCategory(data.category || "");
+            setStock(data.stock?.toString() || "");
+            setStatus(data.status || "Active");
+            setSelectedSizes(data.sizes || []);
+            setSelectedColors(data.colors || []);
+            setImages(data.images || [data.image].filter(Boolean));
+          }
+        } catch (err) {
+          console.error("Error fetching product:", err);
+        } finally {
+          setLoading(false);
+        }
+      }
+      fetchProduct();
+    }
+  }, [productId]);
 
   const toggleSize = (size: string) => {
     setSelectedSizes((prev) =>
@@ -65,16 +116,58 @@ export default function AddNewProductPage() {
     handleImageFiles(e.dataTransfer.files);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would POST to an API
-    alert("Product saved successfully!");
-    router.push("/admin/products");
+    setSaving(true);
+    
+    try {
+      const productData = {
+        id: productId || `p${Date.now()}`,
+        name,
+        description,
+        price: Number(price) || 0,
+        category,
+        stock: Number(stock) || 0,
+        status,
+        sizes: selectedSizes,
+        colors: selectedColors,
+        image: images[0] || "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80",
+        images: images,
+      };
+
+      if (productId) {
+        const { error } = await supabase
+          .from("products")
+          .update(productData)
+          .eq("id", productId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("products")
+          .insert(productData);
+        if (error) throw error;
+      }
+
+      alert("Product saved successfully!");
+      router.push("/admin/products");
+    } catch (err) {
+      console.error("Error saving product:", err);
+      alert("Failed to save product.");
+    } finally {
+      setSaving(false);
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <Loader2 className="w-8 h-8 animate-spin text-[#C9956A]" />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      {/* Custom topbar for this page */}
+    <>
       <header className="py-3 sm:h-16 bg-white border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-8 flex-shrink-0 gap-3 sm:gap-0">
         <div className="flex items-center gap-2 sm:gap-3">
           <MobileMenuButton />
@@ -84,7 +177,9 @@ export default function AddNewProductPage() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512] truncate max-w-[200px] sm:max-w-none">Add New Product</h1>
+          <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512] truncate max-w-[200px] sm:max-w-none">
+            {productId ? "Edit Product" : "Add New Product"}
+          </h1>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <Link
@@ -96,8 +191,10 @@ export default function AddNewProductPage() {
           <button
             form="product-form"
             type="submit"
-            className="flex-1 sm:flex-none px-4 sm:px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
+            disabled={saving}
+            className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer disabled:opacity-50"
           >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             Save Product
           </button>
         </div>
@@ -137,6 +234,7 @@ export default function AddNewProductPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
+                    required
                     className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors resize-none"
                   />
                 </div>
@@ -154,6 +252,7 @@ export default function AddNewProductPage() {
                       onChange={(e) => setPrice(e.target.value)}
                       min="0"
                       step="0.01"
+                      required
                       className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
                     />
                   </div>
@@ -182,10 +281,11 @@ export default function AddNewProductPage() {
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
+                      required
                       className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors appearance-none cursor-pointer"
                     >
                       <option value="">Select category...</option>
-                      {CATEGORIES.map((cat) => (
+                      {(dbCategories.length > 0 ? dbCategories : FALLBACK_CATEGORIES).map((cat) => (
                         <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>
@@ -200,6 +300,7 @@ export default function AddNewProductPage() {
                       value={stock}
                       onChange={(e) => setStock(e.target.value)}
                       min="0"
+                      required
                       className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
                     />
                   </div>
@@ -338,6 +439,16 @@ export default function AddNewProductPage() {
           </div>
         </form>
       </main>
+    </>
+  );
+}
+
+export default function AddNewProductPage() {
+  return (
+    <div className="flex flex-col flex-1 min-h-0">
+      <Suspense fallback={<div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-[#C9956A]" /></div>}>
+        <ProductForm />
+      </Suspense>
     </div>
   );
 }

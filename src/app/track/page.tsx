@@ -6,6 +6,7 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { useSearchParams } from "next/navigation";
 import { Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 interface OrderTrackingData {
   orderRef: string;
@@ -75,34 +76,69 @@ function TrackPageContent() {
     }
   }, [urlRef]);
 
-  const handleSearch = (refToFind?: string) => {
+  const handleSearch = async (refToFind?: string) => {
     const ref = refToFind || orderNumber;
     if (!ref) return;
 
     setIsLoading(true);
     setHasSearched(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
       const uppercaseRef = ref.trim().toUpperCase();
-      
-      if (MOCK_ORDERS[uppercaseRef]) {
-        setTrackedOrder(MOCK_ORDERS[uppercaseRef]);
-      } else if (uppercaseRef.startsWith("DV-")) {
-        // Dynamically generate details for any other DV- formats
+
+      // Query order details
+      let query = supabase
+        .from("orders")
+        .select("*, order_items(*)")
+        .eq("id", uppercaseRef);
+
+      // Optionally filter by phone number
+      if (phoneNumber.trim()) {
+        query = query.eq("phone", phoneNumber.trim());
+      }
+
+      const { data: dbOrder, error } = await query.maybeSingle();
+
+      if (error) throw error;
+
+      if (dbOrder) {
+        // Map status to steps index
+        let activeStep = 1;
+        if (dbOrder.status === "Awaiting Verification") activeStep = 2;
+        else if (dbOrder.status === "Payment Confirmed") activeStep = 3;
+        else if (["Preparing Order", "Driver Assigned"].includes(dbOrder.status)) activeStep = 4;
+        else if (dbOrder.status === "Shipped") activeStep = 5;
+        else if (dbOrder.status === "Delivered") activeStep = 6;
+
+        const itemCount = dbOrder.order_items ? dbOrder.order_items.length : 0;
+
         setTrackedOrder({
-          orderRef: uppercaseRef,
-          date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-          itemsCount: "1 product",
-          totalAmount: searchParams.get("amount") ? "₦" + Number(searchParams.get("amount")).toLocaleString() : "₦83,000",
-          paymentStatus: "Confirmed",
-          statusText: "Preparing",
-          activeStep: 4,
+          orderRef: dbOrder.id,
+          date: new Date(dbOrder.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+          itemsCount: `${itemCount} product${itemCount === 1 ? "" : "s"}`,
+          totalAmount: "₦" + Number(dbOrder.total_amount).toLocaleString(),
+          paymentStatus: dbOrder.payment_status,
+          statusText: dbOrder.status,
+          activeStep,
         });
       } else {
-        setTrackedOrder(null);
+        // Try fallback check in mock database if it was one of the seeds
+        if (MOCK_ORDERS[uppercaseRef]) {
+          setTrackedOrder(MOCK_ORDERS[uppercaseRef]);
+        } else {
+          setTrackedOrder(null);
+        }
       }
-    }, 800);
+    } catch (err) {
+      console.error("Error tracking order:", err);
+      setTrackedOrder(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {

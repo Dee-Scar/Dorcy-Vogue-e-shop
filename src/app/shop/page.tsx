@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { ProductCard } from "@/components/ProductCard";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -10,6 +10,7 @@ import { Search, ChevronDown, SlidersHorizontal, X } from "lucide-react";
 import { PRODUCTS, Product } from "@/data/products";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 const CATEGORIES = [
   "Baggy Jeans",
@@ -26,6 +27,52 @@ export default function ShopPage() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   
+  // Products from Supabase
+  const [products, setProducts] = useState<Product[]>([]);
+  const [dbCategories, setDbCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [prodRes, catRes] = await Promise.all([
+          supabase.from("products").select("*").eq("status", "Active"),
+          supabase.from("categories").select("*").eq("status", "Active"),
+        ]);
+        
+        if (prodRes.error) throw prodRes.error;
+        if (catRes.error) throw catRes.error;
+
+        if (prodRes.data && prodRes.data.length > 0) {
+          const formatted: Product[] = prodRes.data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: Number(p.price),
+            formattedPrice: "₦" + Number(p.price).toLocaleString(),
+            image: p.image,
+            images: p.images || [],
+            category: p.category,
+            description: p.description,
+            sizes: p.sizes || [],
+            colors: p.colors || [],
+            details: p.details || []
+          }));
+          setProducts(formatted);
+        }
+
+        if (catRes.data) {
+          setDbCategories(catRes.data.map(c => c.name));
+        }
+
+      } catch (err) {
+        console.error("Error fetching shop data from database:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
   // Filtering & Sorting States
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
@@ -52,7 +99,7 @@ export default function ShopPage() {
   };
 
   // Filter Logic
-  const filteredProducts = PRODUCTS.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     // Category match
     if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) {
       return false;
@@ -288,7 +335,7 @@ export default function ShopPage() {
                   Categories
                 </h3>
                 <div className="space-y-3">
-                  {CATEGORIES.map((category) => {
+                  {(dbCategories.length > 0 ? dbCategories : CATEGORIES).map((category) => {
                     const isChecked = selectedCategories.includes(category);
                     return (
                       <label key={category} className="flex items-center space-x-3 cursor-pointer group">

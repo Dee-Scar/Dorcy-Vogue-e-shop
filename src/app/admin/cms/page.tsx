@@ -1,13 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
-import { Edit2, Eye, Globe, Plus, Trash2, GripVertical, CheckCircle, HelpCircle, Phone, Mail, MapPin, Sparkles, Sliders } from "lucide-react";
+import { Edit2, Eye, Globe, Plus, Trash2, GripVertical, CheckCircle, HelpCircle, Phone, Mail, MapPin, Sparkles, Sliders, Loader2, X } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface Slide {
   id: number;
   title: string;
+  subtitle?: string;
+  image?: string;
   status: "Active" | "Draft";
 }
 
@@ -18,46 +21,175 @@ interface FAQSection {
 }
 
 export default function CMSPage() {
-  const [slides, setSlides] = useState<Slide[]>([
-    { id: 1, title: "New Summer Collection — Up to 40% Off", status: "Active" },
-    { id: 2, title: "Free Delivery on Orders Over ₦50,000", status: "Active" },
-    { id: 3, title: "Baggy Jeans — Trending Now", status: "Draft" },
-  ]);
-
-  const [aboutTitle, setAboutTitle] = useState("About DORCY VOGUE");
-  const [aboutDescription, setAboutDescription] = useState(
-    "DORCY VOGUE is a premium fashion brand offering stylish, affordable clothing for the modern Nigerian woman. From casual wears to statement pieces, we deliver quality fashion to your doorstep."
-  );
-
-  const [featuredProducts, setFeaturedProducts] = useState([
-    "Baggy Jeans — Washed Blue",
-    "Floral Summer Dress",
-    "Classic White Top",
-    "Leather Crossbody Bag",
-    "Jogger Pants — Olive",
-  ]);
-
+  const [slides, setSlides] = useState<Slide[]>([]);
+  const [aboutTitle, setAboutTitle] = useState("");
+  const [aboutDescription, setAboutDescription] = useState("");
+  const [featuredProducts, setFeaturedProducts] = useState<string[]>([]);
   const [contactInfo, setContactInfo] = useState({
-    phone: "08012345678",
-    email: "hello@dorcyvogue.com",
-    whatsapp: "+234 801 234 5678",
-    address: "12 Lekki Phase 1, Lagos",
+    phone: "",
+    email: "",
+    whatsapp: "",
+    address: "",
   });
+  const [faqSections, setFaqSections] = useState<FAQSection[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const [faqSections, setFaqSections] = useState<FAQSection[]>([
-    { id: 1, title: "Delivery Questions", questionsCount: 4 },
-    { id: 2, title: "Return Policy", questionsCount: 3 },
-    { id: 3, title: "Payment Information", questionsCount: 5 },
-    { id: 4, title: "Sizing Guide", questionsCount: 2 },
-  ]);
+  // Slide Modal States
+  const [showSlideModal, setShowSlideModal] = useState(false);
+  const [editingSlide, setEditingSlide] = useState<Slide | null>(null);
+  const [slideTitle, setSlideTitle] = useState("");
+  const [slideSubtitle, setSlideSubtitle] = useState("");
+  const [slideImage, setSlideImage] = useState("");
+  const [slideStatus, setSlideStatus] = useState<"Active" | "Draft">("Active");
 
-  const handlePublish = () => {
-    alert("Publishing all content updates live to Dorcy Vogue storefront...");
+  useEffect(() => {
+    async function fetchCMS() {
+      try {
+        const { data, error } = await supabase
+          .from("cms_settings")
+          .select("*")
+          .eq("id", 1)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setSlides(data.hero_slides || []);
+          setAboutTitle(data.about_title || "");
+          setAboutDescription(data.about_description || "");
+          setFeaturedProducts(data.featured_products || []);
+          setContactInfo({
+            phone: data.contact_phone || "",
+            email: data.contact_email || "",
+            whatsapp: data.contact_whatsapp || "",
+            address: data.contact_address || "",
+          });
+          setFaqSections(data.faq_sections || []);
+        }
+      } catch (err) {
+        console.error("Error fetching CMS settings:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCMS();
+  }, []);
+
+  const handlePublish = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("cms_settings")
+        .update({
+          hero_slides: slides,
+          about_title: aboutTitle,
+          about_description: aboutDescription,
+          featured_products: featuredProducts,
+          contact_phone: contactInfo.phone,
+          contact_email: contactInfo.email,
+          contact_whatsapp: contactInfo.whatsapp,
+          contact_address: contactInfo.address,
+          faq_sections: faqSections,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", 1);
+
+      if (error) throw error;
+      alert("CMS content published live successfully!");
+    } catch (err) {
+      console.error("Error publishing CMS:", err);
+      alert("Failed to publish content.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handlePreview = () => {
     window.open("/", "_blank");
   };
+
+  const openSlideModal = (slide?: Slide) => {
+    if (slide) {
+      setEditingSlide(slide);
+      setSlideTitle(slide.title);
+      setSlideSubtitle(slide.subtitle || "");
+      setSlideImage(slide.image || "");
+      setSlideStatus(slide.status);
+    } else {
+      setEditingSlide(null);
+      setSlideTitle("");
+      setSlideSubtitle("");
+      setSlideImage("");
+      setSlideStatus("Active");
+    }
+    setShowSlideModal(true);
+  };
+
+  const handleSaveSlide = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!slideTitle.trim()) return;
+
+    if (editingSlide) {
+      setSlides((prev) =>
+        prev.map((s) =>
+          s.id === editingSlide.id
+            ? {
+                ...s,
+                title: slideTitle.trim(),
+                subtitle: slideSubtitle.trim(),
+                image: slideImage.trim(),
+                status: slideStatus,
+              }
+            : s
+        )
+      );
+    } else {
+      const newSlide: Slide = {
+        id: Date.now(),
+        title: slideTitle.trim(),
+        subtitle: slideSubtitle.trim(),
+        image: slideImage.trim(),
+        status: slideStatus,
+      };
+      setSlides((prev) => [...prev, newSlide]);
+    }
+    setShowSlideModal(false);
+  };
+
+  const handleDeleteSlide = (id: number) => {
+    if (confirm("Are you sure you want to delete this slide?")) {
+      setSlides((prev) => prev.filter((s) => s.id !== id));
+    }
+  };
+
+  const handleSlideImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setSlideImage(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col flex-1 min-h-0">
+        <header className="py-3 sm:h-16 bg-white border-b border-gray-100 flex items-center px-4 sm:px-8 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <MobileMenuButton />
+            <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">Content Management</h1>
+          </div>
+        </header>
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#C9956A]" />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -78,9 +210,10 @@ export default function CMSPage() {
           </button>
           <button
             onClick={handlePublish}
-            className="flex items-center justify-center gap-2 px-3 sm:px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer flex-1 sm:flex-none"
+            disabled={saving}
+            className="flex items-center justify-center gap-2 px-3 sm:px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex-1 sm:flex-none"
           >
-            <Globe className="h-4 w-4" />
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="h-4 w-4" />}
             <span className="hidden sm:inline">Publish Changes</span>
             <span className="inline sm:hidden">Publish</span>
           </button>
@@ -100,11 +233,11 @@ export default function CMSPage() {
                   <h2 className="font-serif text-base font-bold text-[#1C1512]">Hero Slider</h2>
                 </div>
                 <button
-                  onClick={() => alert("Edit Hero Slider settings coming soon!")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#C9956A]/20 hover:border-[#C9956A]/40 text-[#C9956A] text-xs font-bold font-sans rounded-lg transition-colors cursor-pointer"
+                  onClick={() => openSlideModal()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9956A] hover:bg-[#A87A52] text-white text-xs font-bold font-sans rounded-lg transition-colors cursor-pointer"
                 >
-                  <Edit2 className="w-3.5 h-3.5" />
-                  Edit
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Slide
                 </button>
               </div>
 
@@ -113,15 +246,25 @@ export default function CMSPage() {
                 {slides.map((slide) => (
                   <div
                     key={slide.id}
-                    className="p-4 bg-[#FAF7F2]/60 rounded-xl border border-gray-100 relative flex flex-col justify-between h-32 hover:border-gray-200 transition-all"
+                    className="p-4 bg-[#FAF7F2]/60 rounded-xl border border-gray-100 relative flex flex-col justify-between min-h-[140px] hover:border-gray-200 transition-all overflow-hidden"
                   >
-                    <div>
-                      <p className="font-sans text-xs text-[#8C8682] font-semibold">Slide {slide.id}</p>
-                      <p className="font-sans text-sm font-semibold text-[#1C1512] mt-1.5 leading-snug line-clamp-2">
+                    {slide.image && (
+                      <div className="absolute inset-0 z-0 opacity-10">
+                        <img src={slide.image} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <div className="relative z-10 space-y-1">
+                      <p className="font-sans text-[10px] text-[#8C8682] font-semibold">Slide {slide.id}</p>
+                      <p className="font-sans text-sm font-semibold text-[#1C1512] leading-snug line-clamp-2">
                         {slide.title}
                       </p>
+                      {slide.subtitle && (
+                        <p className="font-sans text-[11px] text-[#8C8682] line-clamp-1 leading-relaxed">
+                          {slide.subtitle}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-200/40">
+                    <div className="relative z-10 flex items-center justify-between mt-2 pt-2 border-t border-gray-200/40">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-sans ${
                           slide.status === "Active"
@@ -131,9 +274,20 @@ export default function CMSPage() {
                       >
                         {slide.status}
                       </span>
-                      <button className="text-[#8C8682] hover:text-[#1C1512] cursor-grab">
-                        <GripVertical className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openSlideModal(slide)}
+                          className="p-1 text-[#8C8682] hover:text-[#C9956A] hover:bg-white rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSlide(slide.id)}
+                          className="p-1 text-[#8C8682] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -222,10 +376,10 @@ export default function CMSPage() {
                     const newWhatsapp = prompt("Enter WhatsApp:", contactInfo.whatsapp);
                     const newAddress = prompt("Enter Address:", contactInfo.address);
                     setContactInfo({
-                      phone: newPhone || contactInfo.phone,
-                      email: newEmail || contactInfo.email,
-                      whatsapp: newWhatsapp || contactInfo.whatsapp,
-                      address: newAddress || contactInfo.address,
+                      phone: newPhone !== null ? newPhone : contactInfo.phone,
+                      email: newEmail !== null ? newEmail : contactInfo.email,
+                      whatsapp: newWhatsapp !== null ? newWhatsapp : contactInfo.whatsapp,
+                      address: newAddress !== null ? newAddress : contactInfo.address,
                     });
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#C9956A]/20 hover:border-[#C9956A]/40 text-[#C9956A] text-xs font-bold font-sans rounded-lg transition-colors cursor-pointer"
@@ -324,6 +478,125 @@ export default function CMSPage() {
           </div>
         </div>
       </main>
+
+      {/* Slide Modal */}
+      {showSlideModal && (
+        <div className="fixed inset-0 bg-[#120E0D]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl max-w-md w-full p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <h2 className="font-serif text-xl font-bold text-[#1C1512]">
+                {editingSlide ? "Edit Slide" : "Add Slide"}
+              </h2>
+              <button
+                onClick={() => setShowSlideModal(false)}
+                className="p-1 text-[#8C8682] hover:text-[#1C1512] rounded-lg cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSlide} className="space-y-4">
+              {/* Title */}
+              <div className="space-y-1.5">
+                <label className="block font-sans text-xs font-semibold text-[#1C1512] uppercase tracking-wider">
+                  Slide Title
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Elevate Your Style"
+                  value={slideTitle}
+                  onChange={(e) => setSlideTitle(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
+                />
+              </div>
+
+              {/* Subtitle */}
+              <div className="space-y-1.5">
+                <label className="block font-sans text-xs font-semibold text-[#1C1512] uppercase tracking-wider">
+                  Subtitle
+                </label>
+                <textarea
+                  placeholder="e.g. Discover premium fashion that speaks to your unique style."
+                  value={slideSubtitle}
+                  onChange={(e) => setSlideSubtitle(e.target.value)}
+                  rows={2}
+                  className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors resize-none"
+                />
+              </div>
+
+              {/* Image */}
+              <div className="space-y-1.5">
+                <label className="block font-sans text-xs font-semibold text-[#1C1512] uppercase tracking-wider">
+                  Background Image
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Pasted image URL..."
+                    value={slideImage}
+                    onChange={(e) => setSlideImage(e.target.value)}
+                    className="flex-1 px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
+                  />
+                  <label className="flex items-center justify-center px-4 bg-white border border-gray-200 hover:border-gray-300 text-xs font-semibold rounded-xl cursor-pointer select-none">
+                    Upload
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSlideImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                {slideImage && (
+                  <div className="mt-2 w-full h-24 bg-[#FAF7F2] border border-gray-200 rounded-xl overflow-hidden relative">
+                    <img src={slideImage} alt="Slide Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setSlideImage("")}
+                      className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center cursor-pointer"
+                    >
+                      <X className="h-3.5 w-3.5 text-white" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Status */}
+              <div className="space-y-1.5">
+                <label className="block font-sans text-xs font-semibold text-[#1C1512] uppercase tracking-wider">
+                  Status
+                </label>
+                <select
+                  value={slideStatus}
+                  onChange={(e) => setSlideStatus(e.target.value as "Active" | "Draft")}
+                  className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Draft">Draft</option>
+                </select>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowSlideModal(false)}
+                  className="px-4 py-2 bg-white border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-semibold font-sans rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
+                >
+                  Save Slide
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

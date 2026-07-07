@@ -14,20 +14,23 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    setTimeout(() => {
-      const success = adminLogin(email, password);
+    try {
+      const success = await adminLogin(email, password);
       if (success) {
         router.replace("/admin/dashboard");
       } else {
         setError("Invalid credentials. Access denied.");
         setIsLoading(false);
       }
-    }, 800);
+    } catch (err: any) {
+      setError(err.message || "Authentication failed.");
+      setIsLoading(false);
+    }
   };
 
   return (

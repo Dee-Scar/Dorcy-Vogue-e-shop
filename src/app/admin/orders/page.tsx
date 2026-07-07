@@ -1,20 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
-import { Search, Filter, Download, Eye } from "lucide-react";
+import { Search, Filter, Download, Eye, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
-type OrderStatus = "Delivered" | "Shipped" | "Preparing" | "Awaiting Verification" | "Pending Payment" | "Payment Confirmed";
+type OrderStatus = "Delivered" | "Shipped" | "Preparing Order" | "Awaiting Verification" | "Pending Payment" | "Payment Confirmed" | "Driver Assigned";
 
-const statusStyle: Record<OrderStatus, string> = {
+const statusStyle: Record<string, string> = {
   "Delivered": "text-emerald-600 bg-emerald-50",
   "Shipped": "text-blue-600 bg-blue-50",
-  "Preparing": "text-yellow-600 bg-yellow-50",
+  "Preparing Order": "text-yellow-600 bg-yellow-50",
   "Awaiting Verification": "text-orange-600 bg-orange-50",
   "Pending Payment": "text-gray-500 bg-gray-100",
   "Payment Confirmed": "text-emerald-600 bg-emerald-50",
+  "Driver Assigned": "text-purple-600 bg-purple-50",
 };
 
 interface Order {
@@ -26,28 +28,63 @@ interface Order {
   date: string;
 }
 
-const allOrders: Order[] = [
-  { id: "DV-000156", customer: "Amara Johnson", phone: "0801234****", amount: "₦45,000", status: "Delivered", date: "Jun 20" },
-  { id: "DV-000155", customer: "Chioma Eze", phone: "0803456****", amount: "₦32,500", status: "Shipped", date: "Jun 19" },
-  { id: "DV-000154", customer: "Fatima Bello", phone: "0805678****", amount: "₦78,000", status: "Preparing", date: "Jun 19" },
-  { id: "DV-000153", customer: "Grace Okafor", phone: "0807890****", amount: "₦15,000", status: "Awaiting Verification", date: "Jun 18" },
-  { id: "DV-000152", customer: "Blessing Adeyemi", phone: "0809012****", amount: "₦95,000", status: "Pending Payment", date: "Jun 18" },
-  { id: "DV-000151", customer: "Ngozi Udeh", phone: "0812345****", amount: "₦22,000", status: "Payment Confirmed", date: "Jun 17" },
-  { id: "DV-000150", customer: "Kemi Adewale", phone: "0814567****", amount: "₦55,500", status: "Delivered", date: "Jun 17" },
-];
-
-const tabs = [
-  { label: "All Orders", count: 156, filter: null },
-  { label: "Pending", count: 23, filter: "Pending Payment" },
-  { label: "Awaiting Verification", count: 12, filter: "Awaiting Verification" },
-  { label: "Confirmed", count: 8, filter: "Payment Confirmed" },
-  { label: "Shipped", count: 15, filter: "Shipped" },
-  { label: "Delivered", count: 98, filter: "Delivered" },
-];
+interface TabDef {
+  label: string;
+  count: number;
+  filter: string | null;
+}
 
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tabs, setTabs] = useState<TabDef[]>([]);
+
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        const { data, error } = await supabase
+          .from("orders")
+          .select("id, full_name, email, phone, total_amount, status, created_at")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        const orders: Order[] = (data || []).map((o: any) => ({
+          id: o.id,
+          customer: o.full_name || o.email || "Unknown",
+          phone: o.phone || "—",
+          amount: "₦" + Number(o.total_amount || 0).toLocaleString(),
+          status: o.status as OrderStatus,
+          date: new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        }));
+
+        setAllOrders(orders);
+
+        // Build tabs with real counts
+        const statusCounts: Record<string, number> = {};
+        orders.forEach((o) => {
+          statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+        });
+
+        setTabs([
+          { label: "All Orders", count: orders.length, filter: null },
+          { label: "Pending", count: statusCounts["Pending Payment"] || 0, filter: "Pending Payment" },
+          { label: "Awaiting Verification", count: statusCounts["Awaiting Verification"] || 0, filter: "Awaiting Verification" },
+          { label: "Confirmed", count: statusCounts["Payment Confirmed"] || 0, filter: "Payment Confirmed" },
+          { label: "Preparing", count: statusCounts["Preparing Order"] || 0, filter: "Preparing Order" },
+          { label: "Shipped", count: statusCounts["Shipped"] || 0, filter: "Shipped" },
+          { label: "Delivered", count: statusCounts["Delivered"] || 0, filter: "Delivered" },
+        ]);
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchOrders();
+  }, []);
 
   const filtered = allOrders.filter((order) => {
     const matchesTab = activeTab === null || order.status === activeTab;
@@ -124,41 +161,49 @@ export default function OrdersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.map((order) => (
-                  <tr key={order.id} className="hover:bg-[#FAF7F2]/40 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <p className="font-sans text-sm font-semibold text-[#C9956A]">{order.id}</p>
-                      <p className="font-sans text-sm text-[#1C1512]">{order.customer}</p>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="font-sans text-sm text-[#8C8682]">{order.phone}</span>
-                    </td>
-                    <td className="px-6 py-4 text-right whitespace-nowrap">
-                      <span className="font-sans text-sm font-semibold text-[#1C1512]">{order.amount}</span>
-                    </td>
-                    <td className="px-6 py-4 text-center whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold font-sans ${statusStyle[order.status]}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right whitespace-nowrap">
-                      <span className="font-sans text-sm text-[#8C8682]">{order.date}</span>
-                    </td>
-                    <td className="px-6 py-4 text-center whitespace-nowrap">
-                      <Link
-                        href={`/admin/orders/${order.id}`}
-                        className="inline-flex p-1.5 text-[#8C8682] hover:text-[#C9956A] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Link>
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="py-16 text-center">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#C9956A]" />
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filtered.map((order) => (
+                    <tr key={order.id} className="hover:bg-[#FAF7F2]/40 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <p className="font-sans text-sm font-semibold text-[#C9956A]">{order.id}</p>
+                        <p className="font-sans text-sm text-[#1C1512]">{order.customer}</p>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="font-sans text-sm text-[#8C8682]">{order.phone}</span>
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        <span className="font-sans text-sm font-semibold text-[#1C1512]">{order.amount}</span>
+                      </td>
+                      <td className="px-6 py-4 text-center whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold font-sans ${statusStyle[order.status] || "text-gray-500 bg-gray-100"}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        <span className="font-sans text-sm text-[#8C8682]">{order.date}</span>
+                      </td>
+                      <td className="px-6 py-4 text-center whitespace-nowrap">
+                        <Link
+                          href={`/admin/orders/${order.id}`}
+                          className="inline-flex p-1.5 text-[#8C8682] hover:text-[#C9956A] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
 
-          {filtered.length === 0 && (
+          {!loading && filtered.length === 0 && (
             <div className="py-16 text-center">
               <p className="font-sans text-sm text-[#8C8682]">No orders found.</p>
             </div>

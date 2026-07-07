@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import AdminTopbar from "@/components/admin/AdminTopbar";
+import React, { useState, useEffect } from "react";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
-import { Search, Download, Eye, Mail } from "lucide-react";
+import { Search, Download, Eye, Mail, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface Customer {
   name: string;
@@ -16,16 +16,71 @@ interface Customer {
 
 export default function CustomersPage() {
   const [search, setSearch] = useState("");
-  const [customers, setCustomers] = useState<Customer[]>([
-    { name: "Amara Johnson", email: "amara@email.com", phone: "08034521678", orders: 8, totalSpent: "₦245,000", lastOrder: "Jun 20, 2026" },
-    { name: "Chioma Eze", email: "chioma@email.com", phone: "08091234567", orders: 5, totalSpent: "₦162,500", lastOrder: "Jun 19, 2026" },
-    { name: "Fatima Bello", email: "fatima@email.com", phone: "08056789012", orders: 12, totalSpent: "₦478,000", lastOrder: "Jun 19, 2026" },
-    { name: "Grace Okafor", email: "grace@email.com", phone: "08012345678", orders: 3, totalSpent: "₦57,000", lastOrder: "Jun 18, 2026" },
-    { name: "Blessing Adeyemi", email: "blessing@email.com", phone: "08078901234", orders: 6, totalSpent: "₦195,000", lastOrder: "Jun 18, 2026" },
-    { name: "Ngozi Okoli", email: "ngozi@email.com", phone: "08045678901", orders: 2, totalSpent: "₦38,500", lastOrder: "Jun 17, 2026" },
-    { name: "Aisha Mohammed", email: "aisha@email.com", phone: "08023456789", orders: 15, totalSpent: "₦620,000", lastOrder: "Jun 16, 2026" },
-    { name: "Kemi Ogundimu", email: "kemi@email.com", phone: "08067890123", orders: 4, totalSpent: "₦88,000", lastOrder: "Jun 15, 2026" },
-  ]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCustomers() {
+      try {
+        const { data, error } = await supabase
+          .from("orders")
+          .select("email, full_name, phone, total_amount, created_at")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        // Group by email
+        const groups: Record<string, {
+          name: string;
+          phone: string;
+          orders: number;
+          totalSpent: number;
+          lastOrder: Date;
+        }> = {};
+
+        (data || []).forEach((order: any) => {
+          const email = order.email;
+          if (!email) return;
+
+          if (!groups[email]) {
+            groups[email] = {
+              name: order.full_name || email,
+              phone: order.phone || "—",
+              orders: 0,
+              totalSpent: 0,
+              lastOrder: new Date(order.created_at),
+            };
+          }
+
+          groups[email].orders += 1;
+          groups[email].totalSpent += Number(order.total_amount || 0);
+          
+          const orderDate = new Date(order.created_at);
+          if (orderDate > groups[email].lastOrder) {
+            groups[email].lastOrder = orderDate;
+            groups[email].name = order.customer_name || groups[email].name;
+            groups[email].phone = order.phone || groups[email].phone;
+          }
+        });
+
+        const mapped: Customer[] = Object.keys(groups).map((email) => ({
+          email,
+          name: groups[email].name,
+          phone: groups[email].phone,
+          orders: groups[email].orders,
+          totalSpent: "₦" + groups[email].totalSpent.toLocaleString(),
+          lastOrder: groups[email].lastOrder.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+        }));
+
+        setCustomers(mapped);
+      } catch (err) {
+        console.error("Error fetching customers:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCustomers();
+  }, []);
 
   const filtered = customers.filter(
     (c) =>
@@ -50,7 +105,7 @@ export default function CustomersPage() {
           <MobileMenuButton />
           <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">Customers</h1>
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold font-sans bg-[#C9956A]/10 text-[#C9956A]">
-            1,247 total
+            {loading ? "..." : `${customers.length} total`}
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
@@ -91,7 +146,19 @@ export default function CustomersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map((customer, idx) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-16 text-center">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#C9956A]" />
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-16 text-center">
+                    <p className="font-sans text-sm text-[#8C8682]">No customers found.</p>
+                  </td>
+                </tr>
+              ) : filtered.map((customer, idx) => (
                 <tr key={idx} className="hover:bg-[#FAF7F2]/40 transition-colors">
                   {/* Name & Email */}
                   <td className="px-6 py-4">
@@ -138,12 +205,6 @@ export default function CustomersPage() {
             </tbody>
           </table>
           </div>
-
-          {filtered.length === 0 && (
-            <div className="py-16 text-center">
-              <p className="font-sans text-sm text-[#8C8682]">No customers found.</p>
-            </div>
-          )}
         </div>
       </main>
     </div>

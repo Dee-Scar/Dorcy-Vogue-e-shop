@@ -1,8 +1,10 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface User {
+  id?: string;
   name: string;
   email: string;
 }
@@ -10,8 +12,9 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthModalOpen: boolean;
-  login: (name: string, email: string) => void;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
   toggleAuthModal: () => void;
   openAuthModal: () => void;
   closeAuthModal: () => void;
@@ -25,27 +28,86 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("dorcy_vogue_user");
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
-        console.error("Error parsing user storage:", e);
+    // 1. Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "User",
+          email: session.user.email || "",
+        });
       }
-    }
-    setIsInitialized(true);
+      setIsInitialized(true);
+    });
+
+    // 2. Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "User",
+          email: session.user.email || "",
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = (name: string, email: string) => {
-    const newUser = { name, email };
-    setUser(newUser);
-    localStorage.setItem("dorcy_vogue_user", JSON.stringify(newUser));
-    setIsAuthModalOpen(false);
+  const login = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (data.user) {
+      setUser({
+        id: data.user.id,
+        name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split("@")[0] || "User",
+        email: data.user.email || "",
+      });
+      setIsAuthModalOpen(false);
+    }
+    return { success: true };
   };
 
-  const logout = () => {
+  const signup = async (name: string, email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+        },
+      },
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (data.user) {
+      setUser({
+        id: data.user.id,
+        name: name,
+        email: email,
+      });
+      setIsAuthModalOpen(false);
+    }
+    return { success: true };
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem("dorcy_vogue_user");
   };
 
   const toggleAuthModal = () => setIsAuthModalOpen((prev) => !prev);
@@ -58,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         isAuthModalOpen,
         login,
+        signup,
         logout,
         toggleAuthModal,
         openAuthModal,

@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import Link from "next/link";
-import { Plus, Search, Filter, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Filter, Edit, Trash2, Eye, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
-const mockProducts = [
-  { id: "DVP-001", name: "Baggy Jeans", category: "Jeans", price: "₦45,000", stock: 12, status: "Active", image: "/about-photo.jpg" },
-  { id: "DVP-002", name: "Oversized Blazer", category: "Tops", price: "₦78,000", stock: 5, status: "Active", image: "/about-photo.jpg" },
-  { id: "DVP-003", name: "Linen Two Piece Set", category: "Two Piece Sets", price: "₦95,000", stock: 0, status: "Out of Stock", image: "/about-photo.jpg" },
-  { id: "DVP-004", name: "Midi Slip Dress", category: "Dresses", price: "₦55,000", stock: 8, status: "Active", image: "/about-photo.jpg" },
-  { id: "DVP-005", name: "Leather Tote Bag", category: "Bags", price: "₦38,000", stock: 3, status: "Low Stock", image: "/about-photo.jpg" },
-  { id: "DVP-006", name: "Embellished Slides", category: "Slides", price: "₦28,000", stock: 15, status: "Active", image: "/about-photo.jpg" },
-];
+interface Product {
+  id: string;
+  name: string;
+  category: string;
+  price: string;
+  stock: number;
+  status: string;
+  image: string;
+}
 
 const statusStyle: Record<string, string> = {
   "Active": "text-emerald-600 bg-emerald-50",
@@ -23,11 +25,58 @@ const statusStyle: Record<string, string> = {
 
 export default function ProductsPage() {
   const [search, setSearch] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = mockProducts.filter(
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        const mapped: Product[] = (data || []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          category: p.category,
+          price: "₦" + Number(p.price).toLocaleString(),
+          stock: p.stock,
+          status: p.stock === 0 ? "Out of Stock" : p.stock <= 4 ? "Low Stock" : p.status,
+          image: p.image,
+        }));
+
+        setProducts(mapped);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  const handleDeleteProduct = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    
+    try {
+      const { error } = await supabase.from("products").delete().eq("id", id);
+      if (error) throw error;
+      setProducts(products.filter(p => p.id !== id));
+      alert("Product deleted successfully");
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      alert("Failed to delete product");
+    }
+  };
+
+  const filtered = products.filter(
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase())
+      p.category.toLowerCase().includes(search.toLowerCase()) ||
+      p.id.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -68,13 +117,13 @@ export default function ProductsPage() {
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: "Total Products", value: mockProducts.length },
-            { label: "Active", value: mockProducts.filter(p => p.status === "Active").length },
-            { label: "Low Stock", value: mockProducts.filter(p => p.status === "Low Stock").length },
-            { label: "Out of Stock", value: mockProducts.filter(p => p.status === "Out of Stock").length },
+            { label: "Total Products", value: products.length },
+            { label: "Active", value: products.filter(p => p.status === "Active").length },
+            { label: "Low Stock", value: products.filter(p => p.status === "Low Stock").length },
+            { label: "Out of Stock", value: products.filter(p => p.status === "Out of Stock").length },
           ].map((s) => (
             <div key={s.label} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-              <p className="font-serif text-2xl font-bold text-[#1C1512]">{s.value}</p>
+              <p className="font-serif text-2xl font-bold text-[#1C1512]">{loading ? "..." : s.value}</p>
               <p className="font-sans text-xs text-[#8C8682] mt-0.5">{s.label}</p>
             </div>
           ))}
@@ -95,59 +144,70 @@ export default function ProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-              {filtered.map((product) => (
-                <tr key={product.id} className="hover:bg-[#FAF7F2]/40 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[#FAF7F2] border border-gray-100 overflow-hidden flex-shrink-0">
-                        <img src={product.image} alt={product.name} className="w-full h-full object-cover object-top" />
-                      </div>
-                      <div>
-                        <p className="font-sans text-sm font-semibold text-[#1C1512]">{product.name}</p>
-                        <p className="font-sans text-xs text-[#8C8682]">{product.id}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-sans text-sm text-[#1C1512]">{product.category}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="font-sans text-sm font-semibold text-[#1C1512]">{product.price}</span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`font-sans text-sm font-semibold ${product.stock === 0 ? "text-red-500" : product.stock <= 4 ? "text-yellow-500" : "text-[#1C1512]"}`}>
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold font-sans ${statusStyle[product.status]}`}>
-                      {product.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <button className="p-1.5 text-[#8C8682] hover:text-[#C9956A] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer">
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <Link href="/admin/products/new" className="p-1.5 text-[#8C8682] hover:text-[#1C1512] hover:bg-[#FAF7F2] rounded-lg transition-colors">
-                        <Edit className="h-4 w-4" />
-                      </Link>
-                      <button className="p-1.5 text-[#8C8682] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-16 text-center">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#C9956A]" />
                   </td>
                 </tr>
-              ))}
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-16 text-center">
+                    <p className="font-sans text-sm text-[#8C8682]">No products found.</p>
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((product) => (
+                  <tr key={product.id} className="hover:bg-[#FAF7F2]/40 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-[#FAF7F2] border border-gray-100 overflow-hidden flex-shrink-0">
+                          <img src={product.image} alt={product.name} className="w-full h-full object-cover object-top" />
+                        </div>
+                        <div>
+                          <p className="font-sans text-sm font-semibold text-[#1C1512]">{product.name}</p>
+                          <p className="font-sans text-xs text-[#8C8682]">{product.id}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-sans text-sm text-[#1C1512]">{product.category}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <span className="font-sans text-sm font-semibold text-[#1C1512]">{product.price}</span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`font-sans text-sm font-semibold ${product.stock === 0 ? "text-red-500" : product.stock <= 4 ? "text-yellow-500" : "text-[#1C1512]"}`}>
+                        {product.stock}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold font-sans ${statusStyle[product.status] || "text-gray-500 bg-gray-100"}`}>
+                        {product.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button className="p-1.5 text-[#8C8682] hover:text-[#C9956A] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer">
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <Link href={`/admin/products/new?id=${product.id}`} className="p-1.5 text-[#8C8682] hover:text-[#1C1512] hover:bg-[#FAF7F2] rounded-lg transition-colors">
+                          <Edit className="h-4 w-4" />
+                        </Link>
+                        <button 
+                          onClick={() => handleDeleteProduct(product.id)}
+                          className="p-1.5 text-[#8C8682] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
             </table>
           </div>
-
-          {filtered.length === 0 && (
-            <div className="py-16 text-center">
-              <p className="font-sans text-sm text-[#8C8682]">No products found.</p>
-            </div>
-          )}
         </div>
       </main>
     </div>

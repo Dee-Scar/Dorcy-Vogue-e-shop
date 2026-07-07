@@ -4,6 +4,7 @@ import React, { useState, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { MessageSquare, Mail, Phone, MapPin, Send, CheckCircle, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 
 function ContactPageContent() {
@@ -13,7 +14,15 @@ function ContactPageContent() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "success">("idle");
+  const [cmsSettings, setCmsSettings] = useState<any>(null);
 
+  React.useEffect(() => {
+    async function fetchCms() {
+      const { data } = await supabase.from("cms_settings").select("*").eq("id", 1).single();
+      if (data) setCmsSettings(data);
+    }
+    fetchCms();
+  }, []);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !subject || !message) return;
@@ -186,7 +195,7 @@ function ContactPageContent() {
                 </div>
                 <div className="font-sans text-left space-y-0.5">
                   <p className="text-xs sm:text-sm font-bold text-[#1C1512]">WhatsApp</p>
-                  <p className="text-xs font-bold text-[#B78A62]">+234 801 234 5678</p>
+                  <p className="text-xs font-bold text-[#B78A62]">{cmsSettings?.contact_whatsapp || "+234 801 234 5678"}</p>
                   <p className="text-[10px] text-[#8C8682] font-semibold">Chat with us directly</p>
                 </div>
               </div>
@@ -198,7 +207,7 @@ function ContactPageContent() {
                 </div>
                 <div className="font-sans text-left space-y-0.5">
                   <p className="text-xs sm:text-sm font-bold text-[#1C1512]">Email</p>
-                  <p className="text-xs font-bold text-[#B78A62]">hello@dorcyvogue.com</p>
+                  <p className="text-xs font-bold text-[#B78A62]">{cmsSettings?.contact_email || "hello@dorcyvogue.com"}</p>
                   <p className="text-[10px] text-[#8C8682] font-semibold">Send us an email</p>
                 </div>
               </div>
@@ -210,7 +219,7 @@ function ContactPageContent() {
                 </div>
                 <div className="font-sans text-left space-y-0.5">
                   <p className="text-xs sm:text-sm font-bold text-[#1C1512]">Phone</p>
-                  <p className="text-xs font-bold text-[#B78A62]">08012345678</p>
+                  <p className="text-xs font-bold text-[#B78A62]">{cmsSettings?.contact_phone || "08012345678"}</p>
                   <p className="text-[10px] text-[#8C8682] font-semibold">Call us directly</p>
                 </div>
               </div>
@@ -222,7 +231,7 @@ function ContactPageContent() {
                 </div>
                 <div className="font-sans text-left space-y-0.5">
                   <p className="text-xs sm:text-sm font-bold text-[#1C1512]">Visit Us</p>
-                  <p className="text-xs font-bold text-[#B78A62]">12 Lekki Phase 1, Lagos</p>
+                  <p className="text-xs font-bold text-[#B78A62]">{cmsSettings?.contact_address || "12 Lekki Phase 1, Lagos"}</p>
                   <p className="text-[10px] text-[#8C8682] font-semibold">Our location</p>
                 </div>
               </div>

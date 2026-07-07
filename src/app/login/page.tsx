@@ -6,9 +6,10 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
-  const { login, user } = useAuth();
+  const { login, signup, user } = useAuth();
   const router = useRouter();
   const [isLoginTab, setIsLoginTab] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -38,26 +39,42 @@ export default function LoginPage() {
 
     setIsLoading(true);
 
-    // Simulate network delay
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
       if (isLoginTab) {
-        const mockName = email.split("@")[0];
-        login(mockName.charAt(0).toUpperCase() + mockName.slice(1), email);
+        const res = await login(email, password);
+        if (!res.success) {
+          setError(res.error || "Failed to sign in.");
+          setIsLoading(false);
+          return;
+        }
       } else {
-        login(name, email);
+        const res = await signup(name, email, password);
+        if (!res.success) {
+          setError(res.error || "Failed to create account.");
+          setIsLoading(false);
+          return;
+        }
       }
+      setIsLoading(false);
       router.push("/");
-    }, 1500);
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.");
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    setTimeout(() => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) {
+      setError(error.message);
       setIsLoading(false);
-      login("Google User", "googleuser@gmail.com");
-      router.push("/");
-    }, 1200);
+    }
   };
 
   return (

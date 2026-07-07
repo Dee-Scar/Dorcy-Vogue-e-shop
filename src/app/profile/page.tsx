@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { useAuth } from "@/context/AuthContext";
 import { Edit3, Check, Loader2, ArrowRight, Bell, Shield, Globe } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 interface OrderRow {
   ref: string;
@@ -34,6 +35,53 @@ function ProfilePageContent() {
   // Tab state: "orders" | "profile" | "settings"
   const [activeTab, setActiveTab] = useState<"orders" | "profile" | "settings">("orders");
 
+  // Dynamic Orders State
+  const [orders, setOrders] = useState<OrderRow[]>(MOCK_ORDERS);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchUserOrders() {
+      if (!user) {
+        setOrdersLoading(false);
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from("orders")
+          .select("*, order_items(*)")
+          .or(`user_id.eq.${user.id},email.eq.${user.email}`)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const formatted: OrderRow[] = data.map((o: any) => {
+            const count = o.order_items ? o.order_items.reduce((acc: number, item: any) => acc + item.quantity, 0) : 0;
+            return {
+              ref: o.id,
+              date: new Date(o.created_at).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }),
+              items: count,
+              total: "₦" + Number(o.total_amount).toLocaleString(),
+              status: o.status === "Delivered" ? "Delivered" : "Awaiting Payment"
+            };
+          });
+          setOrders(formatted);
+        } else {
+          setOrders([]);
+        }
+      } catch (err) {
+        console.error("Error fetching user orders:", err);
+      } finally {
+        setOrdersLoading(false);
+      }
+    }
+    fetchUserOrders();
+  }, [user]);
+
   // Form states
   const [editName, setEditName] = useState(displayName);
   const [editEmail, setEditEmail] = useState(displayEmail);
@@ -53,17 +101,22 @@ function ProfilePageContent() {
       .slice(0, 2);
   };
 
-  const handleProfileSave = (e: React.FormEvent) => {
+  const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
 
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { full_name: editName }
+      });
+      if (error) throw error;
       setSaveSuccess(true);
-      // Sync with context
-      login(editName, editEmail);
       setTimeout(() => setSaveSuccess(false), 2000);
-    }, 1200);
+    } catch (err: any) {
+      alert("Error updating profile: " + err.message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -168,47 +221,61 @@ function ProfilePageContent() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#1C1512]/5 font-semibold">
-                        {MOCK_ORDERS.map((order) => (
-                          <tr key={order.ref} className="hover:bg-[#FAF7F2]/40 transition-colors">
-                            <td className="py-4.5 px-6 text-[#1C1512] font-mono">
-                              #{order.ref}
-                            </td>
-                            <td className="py-4.5 px-6 text-[#8C8682]">
-                              {order.date}
-                            </td>
-                            <td className="py-4.5 px-6 text-center text-[#1C1512]">
-                              {order.items}
-                            </td>
-                            <td className="py-4.5 px-6 text-right text-[#1C1512]">
-                              {order.total}
-                            </td>
-                            <td className="py-4.5 px-6 text-center">
-                              <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${
-                                  order.status === "Awaiting Payment"
-                                    ? "bg-amber-50 text-amber-700 border border-amber-100/50"
-                                    : "bg-green-50 text-green-700 border border-green-100/50"
-                                }`}
-                              >
-                                <span className={`w-1.5 h-1.5 rounded-full ${order.status === "Awaiting Payment" ? "bg-amber-500 animate-pulse" : "bg-green-500"}`} />
-                                {order.status}
-                              </span>
-                            </td>
-                            <td className="py-4.5 px-6 text-center">
-                              <button
-                                onClick={() => {
-                                  // Strip direct symbol parameters for tracker compatibility
-                                  const searchRef = order.ref.replace("#", "");
-                                  router.push(`/track?ref=${searchRef}`);
-                                }}
-                                className="font-sans text-xs font-bold text-[#B78A62] hover:text-[#9E734D] flex items-center justify-center space-x-0.5 mx-auto hover:translate-x-0.5 transition-transform cursor-pointer"
-                              >
-                                <span>View</span>
-                                <ArrowRight className="h-3 w-3" />
-                              </button>
+                        {ordersLoading ? (
+                          <tr>
+                            <td colSpan={6} className="py-8 text-center text-[#8C8682] font-sans">
+                              <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#B78A62]" />
                             </td>
                           </tr>
-                        ))}
+                        ) : orders.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="py-8 text-center text-[#8C8682] font-sans">
+                              No orders found.
+                            </td>
+                          </tr>
+                        ) : (
+                          orders.map((order) => (
+                            <tr key={order.ref} className="hover:bg-[#FAF7F2]/40 transition-colors">
+                              <td className="py-4.5 px-6 text-[#1C1512] font-mono">
+                                #{order.ref}
+                              </td>
+                              <td className="py-4.5 px-6 text-[#8C8682]">
+                                {order.date}
+                              </td>
+                              <td className="py-4.5 px-6 text-center text-[#1C1512]">
+                                {order.items}
+                              </td>
+                              <td className="py-4.5 px-6 text-right text-[#1C1512]">
+                                {order.total}
+                              </td>
+                              <td className="py-4.5 px-6 text-center">
+                                <span
+                                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${
+                                    order.status === "Awaiting Payment"
+                                      ? "bg-amber-50 text-amber-700 border border-amber-100/50"
+                                      : "bg-green-50 text-green-700 border border-green-100/50"
+                                  }`}
+                                >
+                                  <span className={`w-1.5 h-1.5 rounded-full ${order.status === "Awaiting Payment" ? "bg-amber-500 animate-pulse" : "bg-green-500"}`} />
+                                  {order.status}
+                                </span>
+                              </td>
+                              <td className="py-4.5 px-6 text-center">
+                                <button
+                                  onClick={() => {
+                                    // Strip direct symbol parameters for tracker compatibility
+                                    const searchRef = order.ref.replace("#", "");
+                                    router.push(`/track?ref=${searchRef}`);
+                                  }}
+                                  className="font-sans text-xs font-bold text-[#B78A62] hover:text-[#9E734D] flex items-center justify-center space-x-0.5 mx-auto hover:translate-x-0.5 transition-transform cursor-pointer"
+                                >
+                                  <span>View</span>
+                                  <ArrowRight className="h-3 w-3" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>

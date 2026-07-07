@@ -6,6 +6,7 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Upload, X, CheckCircle, FileText, ArrowRight, Loader2, Copy, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 // Helper color map for previewing color swatches
 const COLOR_MAP: Record<string, string> = {
@@ -121,16 +122,50 @@ function UploadPageContent() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
 
     setStatus("submitting");
 
-    // Simulate submission delay
-    setTimeout(() => {
+    try {
+      // 1. Upload receipt to Supabase Storage bucket 'receipts'
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${refParam}_${Date.now()}.${fileExt}`;
+      const filePath = `receipts/${fileName}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("receipts")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // 2. Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("receipts")
+        .getPublicUrl(filePath);
+
+      // 3. Update orders table in database
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({
+          receipt_url: publicUrl,
+          receipt_uploaded_at: new Date().toISOString(),
+          status: "Awaiting Verification",
+          payment_status: "Awaiting Verification"
+        })
+        .eq("id", refParam);
+
+      if (updateError) throw updateError;
+
       setStatus("success");
-    }, 2000);
+    } catch (err: any) {
+      alert("Error uploading receipt: " + (err.message || err));
+      setStatus("idle");
+    }
   };
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, use, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { CheckoutModal } from "@/components/CheckoutModal";
@@ -9,6 +9,7 @@ import { PRODUCTS, Product } from "@/data/products";
 import { Minus, Plus, ArrowLeft, Heart, Share2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 // Helper color map for previewing color swatches
 const COLOR_MAP: Record<string, string> = {
@@ -52,15 +53,59 @@ export default function ProductPage({ params }: ProductPageProps) {
   const { addToCart } = useCart();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
-  // Retrieve Product
-  const product = PRODUCTS.find((p) => p.id === id);
+  // Retrieve Product State
+  const [product, setProduct] = useState<Product | undefined>(() => PRODUCTS.find((p) => p.id === id));
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProduct() {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          const formatted: Product = {
+            id: data.id,
+            name: data.name,
+            price: Number(data.price),
+            formattedPrice: "₦" + Number(data.price).toLocaleString(),
+            image: data.image,
+            images: data.images || [],
+            category: data.category,
+            description: data.description,
+            sizes: data.sizes || [],
+            colors: data.colors || [],
+            details: data.details || []
+          };
+          setProduct(formatted);
+        }
+      } catch (err) {
+        console.error("Error fetching product details from database:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProduct();
+  }, [id]);
 
   // Dynamic state hooks (safely initialised if product exists)
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [selectedSize, setSelectedSize] = useState(product?.sizes[0] || "M");
-  const [selectedColor, setSelectedColor] = useState(product?.colors[0] || "");
+  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
+
+  // Automatically update active selection states when product is loaded
+  useEffect(() => {
+    if (product) {
+      setSelectedSize(product.sizes[0] || "M");
+      setSelectedColor(product.colors[0] || "");
+    }
+  }, [product]);
 
   if (!product) {
     return (

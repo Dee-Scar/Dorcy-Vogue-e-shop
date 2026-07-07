@@ -5,6 +5,8 @@ import { X, ShoppingBag, Truck } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -13,6 +15,7 @@ interface CheckoutModalProps {
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
   const { cartItems, cartTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState<"form" | "loading" | "success">("form");
   const [fullName, setFullName] = useState("");
@@ -27,7 +30,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   const orderTotal = cartTotal + shippingCost;
   const orderRef = "DV-" + Math.floor(100000 + Math.random() * 900000);
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !email || !address || !phone) {
       alert("Please fill in all required shipping fields.");
@@ -36,16 +39,51 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
     setStep("loading");
 
-    // Simulate payment loading
-    setTimeout(() => {
-      // Clear cart
+    try {
+      // 1. Insert order record
+      const { error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          id: orderRef,
+          user_id: user?.id || null,
+          full_name: fullName,
+          email: email,
+          address: address,
+          phone: phone,
+          shipping_cost: shippingCost,
+          total_amount: orderTotal,
+          payment_status: "Pending Payment",
+          status: "Pending Payment"
+        });
+
+      if (orderError) throw orderError;
+
+      // 2. Insert order items record
+      const itemsToInsert = cartItems.map((item) => ({
+        order_id: orderRef,
+        product_id: item.id,
+        product_name: item.name,
+        size: item.size,
+        color: item.color || "Default",
+        quantity: item.quantity,
+        price: item.price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(itemsToInsert);
+
+      if (itemsError) throw itemsError;
+
+      // 3. Clear cart and redirect
       clearCart();
-      // Redirect to full success page
       router.push(`/checkout/success?amount=${orderTotal}&ref=${orderRef}`);
-      // Close checkout modal
       onClose();
       setStep("form");
-    }, 2000);
+    } catch (err: any) {
+      alert("Error placing order: " + (err.message || err));
+      setStep("form");
+    }
   };
 
   const handleClose = () => {

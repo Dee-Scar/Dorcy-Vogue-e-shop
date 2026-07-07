@@ -1,15 +1,64 @@
 "use client";
 
-import React, { useState } from "react";
-import AdminTopbar from "@/components/admin/AdminTopbar";
+import React, { useState, useEffect } from "react";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
-import { MessageSquare, RefreshCw, Key, Power, Bell, CheckCircle } from "lucide-react";
+import { MessageSquare, RefreshCw, Key, Power, Bell, CheckCircle, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function WhatsAppPage() {
-  const [isConnected, setIsConnected] = useState(true);
-  const [phoneNumber, setPhoneNumber] = useState("+234 801 234 5678");
+  const [isConnected, setIsConnected] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [apiKey, setApiKey] = useState("••••••••••••••••••••••••");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+
+  useEffect(() => {
+    async function fetchWhatsapp() {
+      try {
+        const { data, error } = await supabase
+          .from("whatsapp_settings")
+          .select("*")
+          .eq("id", 1)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setIsConnected(data.is_connected);
+          setPhoneNumber(data.phone_number);
+        }
+      } catch (err) {
+        console.error("Error fetching WhatsApp settings:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchWhatsapp();
+  }, []);
+
+  const updateConnectionStatus = async (status: boolean, num: string) => {
+    setUpdating(true);
+    try {
+      const { error } = await supabase
+        .from("whatsapp_settings")
+        .update({
+          is_connected: status,
+          phone_number: num,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", 1);
+
+      if (error) throw error;
+      
+      setIsConnected(status);
+      setPhoneNumber(num);
+    } catch (err) {
+      console.error("Error updating connection status:", err);
+      alert("Failed to update connection status.");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   const [triggers, setTriggers] = useState([
     { id: "order_created", label: "Send notification when order is created", enabled: true },
@@ -33,17 +82,32 @@ export default function WhatsAppPage() {
 
   const handleDisconnect = () => {
     if (confirm("Are you sure you want to disconnect WhatsApp API?")) {
-      setIsConnected(false);
+      updateConnectionStatus(false, phoneNumber);
     }
   };
 
   const handleConnect = () => {
     const num = prompt("Enter WhatsApp Business Phone Number:", phoneNumber);
     if (num) {
-      setPhoneNumber(num);
-      setIsConnected(true);
+      updateConnectionStatus(true, num);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col flex-1 min-h-0">
+        <header className="py-3 sm:h-16 bg-white border-b border-gray-100 flex items-center px-4 sm:px-8 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <MobileMenuButton />
+            <h1 className="font-sans text-lg sm:text-xl font-semibold text-[#1C1512]">WhatsApp Integration</h1>
+          </div>
+        </header>
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#C9956A]" />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -83,7 +147,7 @@ export default function WhatsAppPage() {
           <div className="flex items-center gap-2.5">
             <button
               onClick={handleTestMessage}
-              disabled={!isConnected}
+              disabled={!isConnected || updating}
               className="px-4 py-2 border border-gray-200 hover:border-gray-300 disabled:opacity-50 text-[#1C1512] text-xs font-bold font-sans rounded-xl transition-colors cursor-pointer"
             >
               Send Test
@@ -91,17 +155,19 @@ export default function WhatsAppPage() {
             {isConnected ? (
               <button
                 onClick={handleDisconnect}
-                className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold font-sans rounded-xl transition-colors cursor-pointer"
+                disabled={updating}
+                className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold font-sans rounded-xl transition-colors cursor-pointer disabled:opacity-50"
               >
-                <Power className="w-3.5 h-3.5" />
+                {updating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Power className="w-3.5 h-3.5" />}
                 Disconnect
               </button>
             ) : (
               <button
                 onClick={handleConnect}
-                className="flex items-center gap-2 px-4 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-xs font-bold font-sans rounded-xl transition-colors cursor-pointer shadow-sm"
+                disabled={updating}
+                className="flex items-center gap-2 px-4 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-xs font-bold font-sans rounded-xl transition-colors cursor-pointer shadow-sm disabled:opacity-50"
               >
-                <Power className="w-3.5 h-3.5" />
+                {updating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Power className="w-3.5 h-3.5" />}
                 Connect API
               </button>
             )}

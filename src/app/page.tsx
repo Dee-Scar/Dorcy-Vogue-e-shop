@@ -1,25 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { ProductCard, Product } from "@/components/ProductCard";
 import { CartDrawer } from "@/components/CartDrawer";
 import { QuickViewModal } from "@/components/QuickViewModal";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { ArrowRight, Sparkles, Send, Check } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
-import { PRODUCTS } from "@/data/products";
-
-// 2. Categories Data
-const CATEGORIES = [
-  { name: "Baggy Jeans", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=800&q=80" },
-  { name: "Dresses", image: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=800&q=80" },
-  { name: "Joggers", image: "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&w=800&q=80" },
-  { name: "Accessories", image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80" },
-  { name: "Basic Tops", image: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=800&q=80" },
-  { name: "Casual Wears", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80" },
-];
+// Mock Images for Categories if no image provided (fallback)
+const CAT_IMAGES: Record<string, string> = {
+  "Baggy Jeans": "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=800&q=80",
+  "Dresses": "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=800&q=80",
+  "Joggers": "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&w=800&q=80",
+  "Accessories": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
+  "Basic Tops": "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=800&q=80",
+  "Casual Wears": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80",
+};
 
 export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -28,11 +27,60 @@ export default function Home() {
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
 
-  // Filter products based on selected tab
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [cmsSettings, setCmsSettings] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [cmsRes, productsRes, categoriesRes] = await Promise.all([
+          supabase.from("cms_settings").select("*").eq("id", 1).single(),
+          supabase.from("products").select("*").eq("status", "Active"),
+          supabase.from("categories").select("*").eq("status", "Active")
+        ]);
+
+        if (cmsRes.data) setCmsSettings(cmsRes.data);
+        if (productsRes.data) setProducts(productsRes.data);
+        if (categoriesRes.data) setCategories(categoriesRes.data);
+      } catch (err) {
+        console.error("Error fetching homepage data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Use CMS data or fallbacks
+  const featuredNames = cmsSettings?.featured_products || [];
+  const featuredProducts = products.filter(p => featuredNames.includes(p.name));
+  
   const filteredProducts =
     categoryFilter === "All"
-      ? PRODUCTS
-      : PRODUCTS.filter((p) => p.category === categoryFilter);
+      ? featuredProducts
+      : featuredProducts.filter((p) => p.category === categoryFilter);
+
+  const activeSlides = cmsSettings?.hero_slides?.filter((s: any) => s.status === "Active") || [];
+  const slidesToRender = activeSlides.length > 0 ? activeSlides : [
+    {
+      id: 1,
+      title: "Elevate Your Style",
+      subtitle: "Discover premium fashion that speaks to your unique sense of style. Curated collections for the modern fashionista.",
+      image: "/hero-store.jpg"
+    }
+  ];
+
+  useEffect(() => {
+    if (slidesToRender.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slidesToRender.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [slidesToRender.length]);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,56 +92,92 @@ export default function Home() {
     }, 4000);
   };
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen bg-[#FAF7F2]">Loading...</div>;
+  }
+
+  const aboutTitle = cmsSettings?.about_title || "About DORCY VOGUE";
+  const aboutDesc = cmsSettings?.about_description || "DORCY VOGUE is a premium fashion brand offering stylish, affordable clothing for the modern Nigerian woman.";
+  const contactPhone = cmsSettings?.contact_phone || "08012345678";
+  const contactEmail = cmsSettings?.contact_email || "hello@dorcyvogue.com";
+
+  // Build unique category filters for featured products
+  const availableCategories = ["All", ...Array.from(new Set(featuredProducts.map(p => p.category)))];
+
   return (
     <div className="flex-grow flex flex-col pt-[70px]">
       {/* Navigation Headers */}
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative h-[80vh] md:h-[90vh] min-h-[500px] flex items-center justify-center overflow-hidden">
-        {/* Background Image Parallax Effect */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src="/hero-store.jpg"
-            alt="DORCY VOGUE Store Interior"
-            className="w-full h-full object-cover brightness-[0.45]"
-          />
-          {/* Subtle overlay gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1C1512]/70 via-[#1C1512]/25 to-transparent" />
-        </div>
+      <section className="relative h-[80vh] md:h-[90vh] min-h-[500px] flex items-center justify-center overflow-hidden bg-black">
+        {/* Background Image with AnimatePresence */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSlide}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+            className="absolute inset-0 z-0"
+          >
+            <img
+              src={slidesToRender[currentSlide]?.image || "/hero-store.jpg"}
+              alt={slidesToRender[currentSlide]?.title}
+              className="w-full h-full object-cover brightness-[0.45]"
+            />
+            {/* Subtle overlay gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1C1512]/70 via-[#1C1512]/25 to-transparent" />
+          </motion.div>
+        </AnimatePresence>
 
-        {/* Content */}
+        {/* Content with AnimatePresence */}
         <div className="relative z-10 max-w-4xl mx-auto text-center px-4 space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="space-y-4"
-          >
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-semibold text-[#B78A62] tracking-wider uppercase border border-white/10">
-              <Sparkles className="h-3.5 w-3.5" /> High-End Nigerian Fashion
-            </span>
-            <h1 className="font-serif text-5xl md:text-7xl font-bold tracking-wide text-white leading-tight">
-              Elevate Your Style
-            </h1>
-            <p className="font-sans text-base md:text-lg text-white/80 max-w-2xl mx-auto leading-relaxed">
-              Discover premium fashion that speaks to your unique sense of style. Curated collections for the modern fashionista.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-          >
-            <a
-              href="/shop"
-              className="inline-block px-8 py-4 bg-[#B78A62] hover:bg-[#9E734D] text-white font-sans text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="space-y-4"
             >
-              Shop Now
-            </a>
-          </motion.div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-semibold text-[#B78A62] tracking-wider uppercase border border-white/10">
+                <Sparkles className="h-3.5 w-3.5" /> High-End Nigerian Fashion
+              </span>
+              <h1 className="font-serif text-5xl md:text-7xl font-bold tracking-wide text-white leading-tight">
+                {slidesToRender[currentSlide]?.title}
+              </h1>
+              <p className="font-sans text-base md:text-lg text-white/80 max-w-2xl mx-auto leading-relaxed">
+                {slidesToRender[currentSlide]?.subtitle || "Discover premium fashion that speaks to your unique sense of style. Curated collections for the modern fashionista."}
+              </p>
+              
+              <div className="pt-2">
+                <a
+                  href="/shop"
+                  className="inline-block px-8 py-4 bg-[#B78A62] hover:bg-[#9E734D] text-white font-sans text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
+                >
+                  Shop Now
+                </a>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
+
+        {/* Navigation Dots if multiple slides */}
+        {slidesToRender.length > 1 && (
+          <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-2">
+            {slidesToRender.map((_: any, idx: number) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentSlide(idx)}
+                className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${
+                  currentSlide === idx ? "bg-[#B78A62] w-6" : "bg-white/40 hover:bg-white/60"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Featured Products Section */}
@@ -111,7 +195,7 @@ export default function Home() {
             
             {/* Category Filter Tabs */}
             <div className="flex flex-wrap gap-2 mt-6 md:mt-0 overflow-x-auto pb-2 scrollbar-none">
-              {["All", "Dresses", "Baggy Jeans", "Basic Tops", "Joggers", "Accessories"].map((tab) => (
+              {availableCategories.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setCategoryFilter(tab)}
@@ -128,15 +212,19 @@ export default function Home() {
           </div>
 
           {/* Grid Layout */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onQuickView={setSelectedProduct}
-              />
-            ))}
-          </div>
+          {filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onQuickView={setSelectedProduct}
+                />
+              ))}
+            </div>
+          ) : (
+             <div className="text-center py-10 text-gray-500">No featured products selected in CMS.</div>
+          )}
         </div>
       </section>
 
@@ -220,7 +308,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {CATEGORIES.map((cat, idx) => (
+            {categories.slice(0, 6).map((cat, idx) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -228,15 +316,13 @@ export default function Home() {
                 transition={{ delay: idx * 0.1, duration: 0.5 }}
                 key={cat.name}
                 onClick={() => {
-                  setCategoryFilter(cat.name);
-                  // Scroll to products
-                  document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
+                  window.location.href = `/shop?category=${encodeURIComponent(cat.name)}`;
                 }}
                 className="group relative h-[300px] rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer"
               >
                 {/* Background image */}
                 <img
-                  src={cat.image}
+                  src={CAT_IMAGES[cat.name] || CAT_IMAGES["Basic Tops"]}
                   alt={cat.name}
                   className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   loading="lazy"
@@ -273,13 +359,10 @@ export default function Home() {
             >
               <div className="w-12 h-1 bg-[#B78A62]" />
               <h2 className="font-serif text-3xl md:text-4xl font-bold text-[#1C1512] leading-tight">
-                About DORCY VOGUE
+                {aboutTitle}
               </h2>
-              <p className="font-sans text-base text-[#1C1512]/80 leading-relaxed">
-                DORCY VOGUE is a premium Nigerian fashion brand dedicated to bringing you the finest curated collections. From elegant dresses to everyday casual wear, we celebrate African style with a modern twist.
-              </p>
-              <p className="font-sans text-sm text-[#8C8682] leading-relaxed">
-                Every stitch in our collections is made with exceptional attention to detail, sourcing the finest sustainable fabrics to ensure longevity, visual depth, and a premium feel. We strive to highlight African cultural silhouettes and adapt them for globally-minded wardrobes.
+              <p className="font-sans text-base text-[#1C1512]/80 leading-relaxed whitespace-pre-wrap">
+                {aboutDesc}
               </p>
               <div>
                 <a
@@ -373,7 +456,7 @@ export default function Home() {
             </h4>
             <ul className="space-y-2.5 text-xs">
               <li>
-                <a href="#products" className="hover:text-white transition-colors">
+                <a href="/shop" className="hover:text-white transition-colors">
                   Shop
                 </a>
               </li>
@@ -402,13 +485,13 @@ export default function Home() {
             </h4>
             <ul className="space-y-2.5 text-xs">
               <li>
-                <a href="mailto:hello@dorcyvogue.com" className="hover:text-white transition-colors">
-                  hello@dorcyvogue.com
+                <a href={`mailto:${contactEmail}`} className="hover:text-white transition-colors">
+                  {contactEmail}
                 </a>
               </li>
               <li>
-                <a href="tel:+2348012345678" className="hover:text-white transition-colors">
-                  +234 801 234 5678
+                <a href={`tel:${contactPhone}`} className="hover:text-white transition-colors">
+                  {contactPhone}
                 </a>
               </li>
               <li className="text-white/45">
