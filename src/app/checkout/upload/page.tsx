@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, Suspense } from "react";
+import React, { useState, useRef, Suspense, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -64,6 +64,35 @@ function UploadPageContent() {
 
   // Upload/Submission states
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
+
+  // Bank details state loaded from Supabase
+  const [bankDetails, setBankDetails] = useState({
+    bankName: "Access Bank",
+    accountName: "DORCY VOGUE",
+    accountNumber: "0123456789",
+  });
+
+  useEffect(() => {
+    const loadBankSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("cms_settings")
+          .select("store_settings")
+          .eq("id", 1)
+          .single();
+        if (data?.store_settings) {
+          setBankDetails({
+            bankName: data.store_settings.bankName || "Access Bank",
+            accountName: data.store_settings.accountName || "DORCY VOGUE",
+            accountNumber: data.store_settings.accountNumber || "0123456789",
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to load bank settings", err);
+      }
+    };
+    loadBankSettings();
+  }, []);
 
   const handleCopy = (text: string, fieldName: string) => {
     navigator.clipboard.writeText(text);
@@ -148,18 +177,20 @@ function UploadPageContent() {
         .from("receipts")
         .getPublicUrl(filePath);
 
-      // 3. Update orders table in database
-      const { error: updateError } = await supabase
-        .from("orders")
-        .update({
-          receipt_url: publicUrl,
-          receipt_uploaded_at: new Date().toISOString(),
-          status: "Awaiting Verification",
-          payment_status: "Awaiting Verification"
-        })
-        .eq("id", refParam);
+      // 3. Update orders table in database using Server API to bypass RLS policies
+      const res = await fetch("/api/upload-receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: refParam,
+          receiptUrl: publicUrl,
+        }),
+      });
 
-      if (updateError) throw updateError;
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to update order with receipt.");
+      }
 
       setStatus("success");
     } catch (err: any) {
@@ -216,9 +247,9 @@ function UploadPageContent() {
           {/* Details Body */}
           <div className="p-5 divide-y divide-[#1C1512]/5 font-sans text-xs sm:text-sm">
             {[
-              { label: "Bank Name", value: "Access Bank", key: "bank" },
-              { label: "Account Name", value: "DORCY VOGUE", key: "name" },
-              { label: "Account Number", value: "0123456789", key: "account" },
+              { label: "Bank Name", value: bankDetails.bankName, key: "bank" },
+              { label: "Account Name", value: bankDetails.accountName, key: "name" },
+              { label: "Account Number", value: bankDetails.accountNumber, key: "account" },
               { label: "Amount to Pay", value: formattedAmount, textValue: amountParam, key: "amount" },
               { label: "Order Number", value: refParam, key: "ref" },
             ].map((row) => (
