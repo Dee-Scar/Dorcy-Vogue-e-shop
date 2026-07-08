@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
 import { ProductCard, Product } from "@/components/ProductCard";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -121,10 +122,13 @@ export default function Home() {
             transition={{ duration: 1 }}
             className="absolute inset-0 z-0"
           >
-            <img
+            <Image
               src={slidesToRender[currentSlide]?.image || "/hero-store.jpg"}
-              alt={slidesToRender[currentSlide]?.title}
-              className="w-full h-full object-cover brightness-[0.45]"
+              alt={slidesToRender[currentSlide]?.title || "Hero Slide"}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover brightness-[0.45]"
             />
             {/* Subtle overlay gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#1C1512]/70 via-[#1C1512]/25 to-transparent" />
@@ -321,11 +325,12 @@ export default function Home() {
                 className="group relative h-[300px] rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer"
               >
                 {/* Background image */}
-                <img
+                <Image
                   src={CAT_IMAGES[cat.name] || CAT_IMAGES["Basic Tops"]}
                   alt={cat.name}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                  loading="lazy"
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
                 {/* Black Overlay */}
                 <div className="absolute inset-0 bg-black/45 group-hover:bg-black/40 transition-colors duration-300" />
@@ -382,11 +387,12 @@ export default function Home() {
               transition={{ duration: 0.6 }}
               className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg bg-[#FAF7F2] border border-[#1C1512]/5"
             >
-              <img
+              <Image
                 src="/about-photo.jpg"
                 alt="Dorcy Vogue Brand Model with Shopping Bags"
-                className="w-full h-full object-cover object-top"
-                loading="lazy"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover object-top"
               />
             </motion.div>
           </div>

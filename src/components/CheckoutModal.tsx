@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { X, ShoppingBag, Truck } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -193,11 +194,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                     ) : (
                       cartItems.map((item) => (
                         <div key={`${item.id}-${item.size}`} className="flex items-center space-x-3 text-sm">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-12 h-16 object-cover rounded-lg bg-white border border-[#1C1512]/5"
-                          />
+                          <div className="w-12 h-16 object-cover rounded-lg bg-white border border-[#1C1512]/5 overflow-hidden relative shrink-0">
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              sizes="48px"
+                              className="object-cover"
+                            />
+                          </div>
                           <div className="flex-grow min-w-0">
                             <h4 className="font-sans font-semibold text-[#1C1512] truncate">
                               {item.name}

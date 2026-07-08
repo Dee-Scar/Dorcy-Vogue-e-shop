@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, use, useEffect } from "react";
+import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { CheckoutModal } from "@/components/CheckoutModal";
@@ -166,16 +167,23 @@ export default function ProductPage({ params }: ProductPageProps) {
             {/* Main Preview */}
             <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-sm bg-white border border-[#1C1512]/5 relative">
               <AnimatePresence mode="wait">
-                <motion.img
+                <motion.div
                   key={activeImageIndex}
-                  src={product.images[activeImageIndex] || product.image}
-                  alt={`${product.name} Preview`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full h-full object-cover"
-                />
+                  className="relative w-full h-full"
+                >
+                  <Image
+                    src={product.images[activeImageIndex] || product.image}
+                    alt={`${product.name} Preview`}
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                  />
+                </motion.div>
               </AnimatePresence>
             </div>
 
@@ -191,12 +199,15 @@ export default function ProductPage({ params }: ProductPageProps) {
                       isActive ? "border-[#B78A62] ring-2 ring-[#B78A62]/20" : "border-[#1C1512]/10 hover:border-[#B78A62]/50"
                     }`}
                   >
-                    <img
-                      src={imgUrl}
-                      alt={`${product.name} Thumbnail ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={imgUrl}
+                        alt={`${product.name} Thumbnail ${idx + 1}`}
+                        fill
+                        sizes="120px"
+                        className="object-cover"
+                      />
+                    </div>
                   </button>
                 );
               })}

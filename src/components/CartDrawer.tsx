@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { X, Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -96,11 +97,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onCheckout }) => {
                     className="flex items-start space-x-4 pb-6 border-b border-[#1C1512]/5 last:border-0 last:pb-0"
                   >
                     {/* Item Image */}
-                    <div className="w-20 h-24 bg-[#FAF7F2] rounded-lg overflow-hidden flex-shrink-0 border border-[#1C1512]/5">
-                      <img
+                    <div className="w-20 h-24 bg-[#FAF7F2] rounded-lg overflow-hidden flex-shrink-0 border border-[#1C1512]/5 relative">
+                      <Image
                         src={item.image}
                         alt={item.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="80px"
+                        className="object-cover"
                       />
                     </div>
 

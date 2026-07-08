@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { Mail, Lock, Eye, EyeOff, User as UserIcon, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -89,10 +90,13 @@ export default function LoginPage() {
 
       {/* Left Column - Cover Image (Hidden on Mobile) */}
       <div className="hidden md:flex md:w-[42%] relative overflow-hidden h-screen select-none">
-        <img
+        <Image
           src="/login-photo.jpg"
           alt="Dorcy Vogue Shopping Bags"
-          className="absolute inset-0 w-full h-full object-cover brightness-[0.7]"
+          fill
+          priority
+          sizes="40vw"
+          className="object-cover brightness-[0.7]"
         />
         {/* Shadow overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#120E0D]/90 via-[#120E0D]/20 to-transparent" />

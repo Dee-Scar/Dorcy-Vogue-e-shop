@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { CheckoutModal } from "@/components/CheckoutModal";
@@ -75,12 +76,13 @@ export default function CartPage() {
                       {/* Image & Details Column */}
                       <div className="flex items-center space-x-4 min-w-0">
                         {/* Image */}
-                        <div className="w-20 h-24 sm:w-24 sm:h-30 bg-[#FAF7F2] rounded-lg overflow-hidden border border-[#1C1512]/5 flex-shrink-0">
-                          <img
+                        <div className="w-20 h-24 sm:w-24 sm:h-30 bg-[#FAF7F2] rounded-lg overflow-hidden border border-[#1C1512]/5 flex-shrink-0 relative">
+                          <Image
                             src={item.image}
                             alt={item.name}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
+                            fill
+                            sizes="96px"
+                            className="object-cover"
                           />
                         </div>
 

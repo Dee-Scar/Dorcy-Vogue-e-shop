@@ -5,6 +5,7 @@ import { ShoppingCart, Eye } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { motion } from "framer-motion";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export interface Product {
@@ -56,12 +57,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
       className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full border border-[#1C1512]/5 cursor-pointer"
     >
       {/* Image Section */}
-      <div className="relative overflow-hidden aspect-[4/5]">
-        <img
+      <div className="relative overflow-hidden aspect-[4/5] w-full">
+        <Image
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          loading="lazy"
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          priority={false}
         />
         {/* Hover overlay icons */}
         <div className="absolute inset-0 bg-[#1C1512]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-3">

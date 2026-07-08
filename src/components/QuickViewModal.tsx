@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { X, ShoppingCart, Check } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { Product } from "@/components/ProductCard";
@@ -74,10 +75,12 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, onClose
 
           {/* Left: Product Image */}
           <div className="bg-[#FAF7F2] relative aspect-[4/5] md:aspect-auto md:h-full min-h-[300px] md:min-h-[500px]">
-            <img
+            <Image
               src={product.image}
               alt={product.name}
-              className="absolute inset-0 w-full h-full object-cover"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover"
             />
           </div>
 
