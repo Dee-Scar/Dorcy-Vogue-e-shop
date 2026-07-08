@@ -35,6 +35,7 @@ interface OrderDetail {
   delivery_fee: number;
   receipt_url: string | null;
   receipt_uploaded_at: string | null;
+  driver_name: string | null;
   created_at: string;
 }
 
@@ -45,6 +46,8 @@ export default function OrderDetailsPage() {
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [tempDriverName, setTempDriverName] = useState("");
 
   useEffect(() => {
     async function fetchOrder() {
@@ -79,6 +82,7 @@ export default function OrderDetailsPage() {
             delivery_fee: Number(data.shipping_cost || 0),
             receipt_url: data.receipt_url || null,
             receipt_uploaded_at: data.receipt_uploaded_at || null,
+            driver_name: data.driver_name || null,
             created_at: data.created_at,
           });
         }
@@ -124,6 +128,38 @@ export default function OrderDetailsPage() {
     } catch (err) {
       console.error("Error updating status:", err);
       alert("Failed to update order status. Please try again.");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleAssignDriver = async (driverName: string) => {
+    if (!order || updating) return;
+    setUpdating(true);
+    try {
+      const updatePayload: any = { driver_name: driverName };
+      
+      // If order is currently in "Preparing Order", auto-advance it to "Driver Assigned"
+      if (order.status === "Preparing Order") {
+        updatePayload.status = "Driver Assigned";
+      }
+
+      const { error } = await supabase
+        .from("orders")
+        .update(updatePayload)
+        .eq("id", order.id);
+
+      if (error) throw error;
+
+      setOrder({ 
+        ...order, 
+        driver_name: driverName,
+        status: updatePayload.status || order.status
+      });
+      setIsAssignModalOpen(false);
+    } catch (err) {
+      console.error("Error assigning driver:", err);
+      alert("Failed to assign driver. Please try again.");
     } finally {
       setUpdating(false);
     }
@@ -431,19 +467,34 @@ export default function OrderDetailsPage() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="font-sans text-base font-semibold text-[#1C1512]">Delivery Assignment</h2>
-                <button className="px-3 py-1 bg-[#FAF7F2] border border-[#C9956A]/20 text-[#C9956A] hover:bg-[#C9956A]/10 text-xs font-bold font-sans rounded-lg transition-colors cursor-pointer flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    setTempDriverName(order.driver_name || "");
+                    setIsAssignModalOpen(true);
+                  }}
+                  className="px-3 py-1 bg-[#FAF7F2] border border-[#C9956A]/20 text-[#C9956A] hover:bg-[#C9956A]/10 text-xs font-bold font-sans rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                >
                   <Truck className="h-3 w-3" />
-                  Assign Driver
+                  {order.driver_name ? "Change Driver" : "Assign Driver"}
                 </button>
               </div>
 
               <div className="border border-dashed border-gray-200 rounded-xl py-6 flex flex-col items-center justify-center text-center">
-                <Truck className="h-6 w-6 text-[#8C8682] mb-1.5" />
-                <p className="font-sans text-xs text-[#8C8682]">
-                  {["Driver Assigned", "Shipped", "Delivered"].includes(order.status)
-                    ? "Driver has been assigned to this order."
-                    : "No driver assigned yet."}
-                </p>
+                <Truck className="h-6 w-6 text-[#C9956A] mb-1.5" />
+                {order.driver_name ? (
+                  <div className="space-y-1">
+                    <p className="font-sans text-sm font-semibold text-[#1C1512]">
+                      {order.driver_name}
+                    </p>
+                    <p className="font-sans text-[11px] text-[#8C8682]">
+                      Assigned to deliver this order.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="font-sans text-xs text-[#8C8682]">
+                    No driver assigned yet. Click "Assign Driver" to select one.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -451,6 +502,62 @@ export default function OrderDetailsPage() {
 
         </div>
       </main>
+
+      {/* Assign Driver Modal */}
+      {isAssignModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setIsAssignModalOpen(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs cursor-pointer"
+          />
+          {/* Modal Content */}
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl relative z-10 border border-[#1C1512]/5">
+            <div className="flex justify-center">
+              <div className="p-3 bg-[#FAF7F2] rounded-full text-[#C9956A]">
+                <Truck className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-serif text-lg font-bold text-[#1C1512]">
+                Assign Delivery Driver
+              </h3>
+              <p className="font-sans text-xs text-[#8C8682]">
+                Enter the name of the driver delivering this order.
+              </p>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleAssignDriver(tempDriverName);
+            }} className="space-y-3">
+              <input
+                type="text"
+                required
+                placeholder="Driver Name (e.g. John Doe)"
+                value={tempDriverName}
+                onChange={(e) => setTempDriverName(e.target.value)}
+                className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
+              />
+              <div className="flex gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsAssignModalOpen(false)}
+                  className="flex-1 py-2.5 bg-gray-50 border border-gray-200 text-[#1C1512] font-sans text-xs font-semibold rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updating}
+                  className="flex-1 py-2.5 bg-[#C9956A] text-white font-sans text-xs font-semibold rounded-xl hover:bg-[#A87A52] transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {updating ? "Saving..." : "Confirm"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
