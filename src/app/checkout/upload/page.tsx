@@ -158,38 +158,18 @@ function UploadPageContent() {
     setStatus("submitting");
 
     try {
-      // 1. Upload receipt to Supabase Storage bucket 'receipts'
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${refParam}_${Date.now()}.${fileExt}`;
-      const filePath = `receipts/${fileName}`;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("orderId", refParam);
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("receipts")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: true,
-        });
-
-      if (uploadError) throw uploadError;
-
-      // 2. Get Public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("receipts")
-        .getPublicUrl(filePath);
-
-      // 3. Update orders table in database using Server API to bypass RLS policies
       const res = await fetch("/api/upload-receipt", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: refParam,
-          receiptUrl: publicUrl,
-        }),
+        body: formData,
       });
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to update order with receipt.");
+        throw new Error(errorData.error || "Failed to upload receipt.");
       }
 
       setStatus("success");
