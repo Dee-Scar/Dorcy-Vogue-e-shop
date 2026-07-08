@@ -63,20 +63,20 @@ export default function OrderDetailsPage() {
             size: item.size || "—",
             color: item.color || "—",
             qty: item.quantity || 1,
-            price: Number(item.unit_price || 0),
+            price: Number(item.price || 0),
           }));
 
           setOrder({
             id: data.id,
             status: data.status as OrderStatus,
-            customer_name: data.customer_name || data.email || "Unknown",
+            customer_name: data.full_name || data.email || "Unknown",
             phone: data.phone || "—",
             email: data.email || "—",
             address: data.address || "—",
             state: data.state || "—",
             city: data.city || "—",
             items,
-            delivery_fee: Number(data.delivery_fee || 0),
+            delivery_fee: Number(data.shipping_cost || 0),
             receipt_url: data.receipt_url || null,
             receipt_uploaded_at: data.receipt_uploaded_at || null,
             created_at: data.created_at,
