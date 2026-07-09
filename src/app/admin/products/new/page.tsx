@@ -37,6 +37,10 @@ function ProductForm() {
   
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [videoUrl, setVideoUrl] = useState("");
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(!!productId);
   const [saving, setSaving] = useState(false);
@@ -74,6 +78,7 @@ function ProductForm() {
             setSelectedSizes(data.sizes || []);
             setSelectedColors(data.colors || []);
             setImages(data.images || [data.image].filter(Boolean));
+            setVideoUrl(data.video_url || "");
           }
         } catch (err) {
           console.error("Error fetching product:", err);
@@ -116,6 +121,37 @@ function ProductForm() {
     handleImageFiles(e.dataTransfer.files);
   };
 
+  const handleVideoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("video/")) {
+      alert("Please upload a valid video file.");
+      return;
+    }
+
+    setUploadingVideo(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload-video", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to upload video");
+
+      setVideoUrl(data.url);
+    } catch (err: any) {
+      console.error("Error uploading video:", err);
+      alert(err.message || "Failed to upload video.");
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -133,6 +169,7 @@ function ProductForm() {
         colors: selectedColors,
         image: images[0] || "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80",
         images: images,
+        video_url: videoUrl || null,
       };
 
       if (productId) {
@@ -420,6 +457,66 @@ function ProductForm() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Product Video */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-sans text-base font-semibold text-[#1C1512]">Product Video</h2>
+                  {videoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setVideoUrl("")}
+                      className="text-xs text-red-500 hover:text-red-700 font-sans font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <X className="h-3 w-3" /> Remove
+                    </button>
+                  )}
+                </div>
+
+                {videoUrl ? (
+                  <div className="rounded-xl overflow-hidden border border-gray-200 aspect-video bg-black relative">
+                    <video
+                      src={videoUrl}
+                      controls
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => videoInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
+                      uploadingVideo
+                        ? "border-gray-200 bg-[#FAF7F2]"
+                        : "border-gray-200 hover:border-[#C9956A] hover:bg-[#FAF7F2]/50"
+                    }`}
+                  >
+                    {uploadingVideo ? (
+                      <>
+                        <Loader2 className="h-7 w-7 animate-spin text-[#C9956A]" />
+                        <p className="font-sans text-xs text-[#8C8682] text-center leading-relaxed">
+                          Uploading video...
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <ImagePlus className="h-7 w-7 text-[#8C8682]" />
+                        <p className="font-sans text-xs text-[#8C8682] text-center leading-relaxed">
+                          Click to upload product video<br />
+                          <span className="text-[10px]">MP4, MOV up to 100MB</span>
+                        </p>
+                      </>
+                    )}
+                    <input
+                      ref={videoInputRef}
+                      type="file"
+                      accept="video/*"
+                      className="hidden"
+                      onChange={handleVideoFile}
+                      disabled={uploadingVideo}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Status */}

@@ -15,6 +15,7 @@ create table public.products (
   details text[] not null default '{}',
   stock integer not null default 0,
   status text not null default 'Active', -- 'Active', 'Draft', 'Out of Stock'
+  video_url text,
   created_at timestamptz default now()
 );
 

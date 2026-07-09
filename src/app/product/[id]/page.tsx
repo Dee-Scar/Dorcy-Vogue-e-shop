@@ -7,7 +7,7 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { useCart } from "@/context/CartContext";
 import { PRODUCTS, Product } from "@/data/products";
-import { Minus, Plus, ArrowLeft, Heart, Share2 } from "lucide-react";
+import { Minus, Plus, ArrowLeft, Heart, Share2, Play, X } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -80,7 +80,8 @@ export default function ProductPage({ params }: ProductPageProps) {
             description: data.description,
             sizes: data.sizes || [],
             colors: data.colors || [],
-            details: data.details || []
+            details: data.details || [],
+            videoUrl: data.video_url || undefined
           };
           setProduct(formatted);
         }
@@ -99,6 +100,8 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   // Automatically update active selection states when product is loaded
   useEffect(() => {
@@ -165,37 +168,65 @@ export default function ProductPage({ params }: ProductPageProps) {
           {/* Left Column: Image Gallery (Takes up 7 cols on Desktop) */}
           <div className="lg:col-span-7 space-y-4">
             {/* Main Preview */}
-            <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-sm bg-white border border-[#1C1512]/5 relative">
+            <div
+              onClick={() => {
+                if (!showVideo) setIsLightboxOpen(true);
+              }}
+              className={`aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-sm bg-white border border-[#1C1512]/5 relative ${!showVideo ? "cursor-zoom-in animate-none" : ""}`}
+            >
               <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeImageIndex}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="relative w-full h-full"
-                >
-                  <Image
-                    src={product.images[activeImageIndex] || product.image}
-                    alt={`${product.name} Preview`}
-                    fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-cover"
-                  />
-                </motion.div>
+                {showVideo && product.videoUrl ? (
+                  <motion.div
+                    key="video-preview"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="w-full h-full bg-black relative"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <video
+                      src={product.videoUrl}
+                      controls
+                      autoPlay
+                      loop
+                      className="w-full h-full object-contain"
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={activeImageIndex}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative w-full h-full"
+                  >
+                    <Image
+                      src={product.images[activeImageIndex] || product.image}
+                      alt={`${product.name} Preview`}
+                      fill
+                      priority
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      className="object-cover"
+                    />
+                  </motion.div>
+                )}
               </AnimatePresence>
             </div>
 
             {/* Thumbnails Row */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="flex gap-3 overflow-x-auto pb-1.5 scrollbar-none">
               {product.images.map((imgUrl, idx) => {
-                const isActive = activeImageIndex === idx;
+                const isActive = !showVideo && activeImageIndex === idx;
                 return (
                   <button
                     key={idx}
-                    onClick={() => setActiveImageIndex(idx)}
-                    className={`aspect-[4/3] rounded-xl overflow-hidden bg-white border cursor-pointer transition-all duration-300 ${
+                    onClick={() => {
+                      setShowVideo(false);
+                      setActiveImageIndex(idx);
+                    }}
+                    className={`aspect-[4/3] w-24 rounded-xl overflow-hidden bg-white border flex-shrink-0 cursor-pointer transition-all duration-300 ${
                       isActive ? "border-[#B78A62] ring-2 ring-[#B78A62]/20" : "border-[#1C1512]/10 hover:border-[#B78A62]/50"
                     }`}
                   >
@@ -211,6 +242,30 @@ export default function ProductPage({ params }: ProductPageProps) {
                   </button>
                 );
               })}
+
+              {product.videoUrl && (
+                <button
+                  onClick={() => setShowVideo(true)}
+                  className={`aspect-[4/3] w-24 rounded-xl overflow-hidden bg-black/5 border flex-shrink-0 cursor-pointer transition-all duration-300 flex items-center justify-center relative ${
+                    showVideo ? "border-[#B78A62] ring-2 ring-[#B78A62]/20" : "border-[#1C1512]/10 hover:border-[#B78A62]/50"
+                  }`}
+                >
+                  {product.images[0] ? (
+                    <div className="absolute inset-0 opacity-40">
+                      <Image
+                        src={product.images[0]}
+                        alt="Video Thumbnail Background"
+                        fill
+                        sizes="120px"
+                        className="object-cover blur-[1px]"
+                      />
+                    </div>
+                  ) : null}
+                  <div className="relative z-10 p-2 bg-white/90 rounded-full text-[#B78A62] shadow-sm">
+                    <Play className="h-4 w-4 fill-current ml-0.5" />
+                  </div>
+                </button>
+              )}
             </div>
           </div>
 
@@ -386,6 +441,50 @@ export default function ProductPage({ params }: ProductPageProps) {
       {/* Global Modals */}
       <CartDrawer onCheckout={() => setIsCheckoutOpen(true)} />
       <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} />
+
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {isLightboxOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+          >
+            {/* Close handler on backdrop click */}
+            <div 
+              onClick={() => setIsLightboxOpen(false)}
+              className="absolute inset-0 cursor-zoom-out"
+            />
+            
+            {/* Close Button */}
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer z-10"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            
+            {/* Main Lightbox Image */}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative max-w-5xl w-full aspect-[4/3] max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+            >
+              <Image
+                src={product.images[activeImageIndex] || product.image}
+                alt={product.name}
+                fill
+                className="object-contain"
+                sizes="100vw"
+                priority
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -10,6 +10,7 @@ export interface Product {
   sizes: string[];
   colors: string[];
   details: string[];
+  videoUrl?: string;
 }
 
 export const PRODUCTS: Product[] = [
