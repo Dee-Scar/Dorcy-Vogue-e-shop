@@ -7,14 +7,6 @@ import { ArrowLeft, ImagePlus, X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
-const COLORS = [
-  { name: "Black", hex: "#1C1512" },
-  { name: "White", hex: "#F5EFE6" },
-  { name: "Tan", hex: "#C9956A" },
-  { name: "Dark Green", hex: "#2D4A3E" },
-  { name: "Navy", hex: "#1B2A4A" },
-];
 const FALLBACK_CATEGORIES = ["Jeans", "Dresses", "Bags", "Tops", "Slides", "Two Piece Sets"];
 
 function ProductForm() {
@@ -29,13 +21,16 @@ function ProductForm() {
   const [comparePrice, setComparePrice] = useState("");
   const [category, setCategory] = useState("");
   const [stock, setStock] = useState("");
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(["M", "L"]);
-  const [selectedColors, setSelectedColors] = useState<string[]>(["Black"]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [sizeInput, setSizeInput] = useState("");
+  const [colorInput, setColorInput] = useState("");
   const [status, setStatus] = useState("Active");
   const [images, setImages] = useState<string[]>([]);
   const [dbCategories, setDbCategories] = useState<string[]>([]);
-  
+
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [videoUrl, setVideoUrl] = useState("");
@@ -90,29 +85,55 @@ function ProductForm() {
     }
   }, [productId]);
 
-  const toggleSize = (size: string) => {
-    setSelectedSizes((prev) =>
-      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
-    );
+  const addSize = () => {
+    const val = sizeInput.trim();
+    if (!val) return;
+    setSelectedSizes((prev) => (prev.includes(val) ? prev : [...prev, val]));
+    setSizeInput("");
   };
 
-  const toggleColor = (color: string) => {
-    setSelectedColors((prev) =>
-      prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
-    );
+  const removeSize = (size: string) =>
+    setSelectedSizes((prev) => prev.filter((s) => s !== size));
+
+  const addColor = () => {
+    const val = colorInput.trim();
+    if (!val) return;
+    setSelectedColors((prev) => (prev.includes(val) ? prev : [...prev, val]));
+    setColorInput("");
   };
 
-  const handleImageFiles = (files: FileList | null) => {
+  const removeColor = (color: string) =>
+    setSelectedColors((prev) => prev.filter((c) => c !== color));
+
+  // Upload images to Supabase Storage (returns public URLs, not base64) so the
+  // catalogue stays lightweight and loads fast.
+  const handleImageFiles = async (files: FileList | null) => {
     if (!files) return;
-    const readers = Array.from(files).slice(0, 4 - images.length);
-    readers.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImages((prev) => [...prev, result].slice(0, 4));
-      };
-      reader.readAsDataURL(file);
-    });
+    const slots = 4 - images.length;
+    if (slots <= 0) return;
+    const toUpload = Array.from(files).slice(0, slots);
+
+    setUploadingImage(true);
+    try {
+      for (const file of toUpload) {
+        if (!file.type.startsWith("image/")) continue;
+        if (file.size > 5 * 1024 * 1024) {
+          alert(`"${file.name}" is larger than 5MB and was skipped.`);
+          continue;
+        }
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload-image", { method: "POST", body: formData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to upload image");
+        setImages((prev) => [...prev, data.url].slice(0, 4));
+      }
+    } catch (err) {
+      console.error("Error uploading image:", err);
+      alert(err instanceof Error ? err.message : "Failed to upload image.");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -172,24 +193,31 @@ function ProductForm() {
         video_url: videoUrl || null,
       };
 
-      if (productId) {
-        const { error } = await supabase
-          .from("products")
-          .update(productData)
-          .eq("id", productId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("products")
-          .insert(productData);
-        if (error) throw error;
+      const save = (payload: typeof productData | Omit<typeof productData, "video_url">) =>
+        productId
+          ? supabase.from("products").update(payload).eq("id", productId)
+          : supabase.from("products").insert(payload);
+
+      let { error } = await save(productData);
+
+      // If the `video_url` column hasn't been added to the table yet, retry
+      // without it so the rest of the product still saves.
+      if (error && /video_url/i.test(error.message)) {
+        const { video_url, ...rest } = productData;
+        const retry = await save(rest);
+        error = retry.error;
+        if (!error && videoUrl) {
+          alert("Product saved, but the video could not be stored because the 'video_url' column is missing. Run the provided SQL migration to enable product videos.");
+        }
       }
+
+      if (error) throw error;
 
       alert("Product saved successfully!");
       router.push("/admin/products");
     } catch (err) {
       console.error("Error saving product:", err);
-      alert("Failed to save product.");
+      alert("Failed to save product: " + (err instanceof Error ? err.message : "unknown error"));
     } finally {
       setSaving(false);
     }
@@ -353,25 +381,50 @@ function ProductForm() {
                   <label className="block font-sans text-xs font-semibold text-[#1C1512] uppercase tracking-wider">
                     Available Sizes
                   </label>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {SIZES.map((size) => {
-                      const active = selectedSizes.includes(size);
-                      return (
-                        <button
+                  <p className="font-sans text-[11px] text-[#8C8682] -mt-1">
+                    Type any size (e.g. <span className="font-semibold">S, M, 42, 8.5</span>) and press Enter or Add.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={sizeInput}
+                      onChange={(e) => setSizeInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addSize();
+                        }
+                      }}
+                      placeholder="Enter a size..."
+                      className="flex-1 px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={addSize}
+                      className="px-4 py-2.5 bg-[#1C1007] hover:bg-[#2E1E0F] text-white text-sm font-semibold font-sans rounded-xl transition-colors cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {selectedSizes.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap pt-1">
+                      {selectedSizes.map((size) => (
+                        <span
                           key={size}
-                          type="button"
-                          onClick={() => toggleSize(size)}
-                          className={`px-4 py-1.5 rounded-lg border text-sm font-semibold font-sans transition-all cursor-pointer ${
-                            active
-                              ? "bg-[#C9956A] border-[#C9956A] text-white"
-                              : "bg-white border-gray-200 text-[#8C8682] hover:border-[#C9956A] hover:text-[#C9956A]"
-                          }`}
+                          className="inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-lg bg-[#C9956A] text-white text-sm font-semibold font-sans"
                         >
                           {size}
-                        </button>
-                      );
-                    })}
-                  </div>
+                          <button
+                            type="button"
+                            onClick={() => removeSize(size)}
+                            className="hover:bg-white/20 rounded-full p-0.5 cursor-pointer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Colors */}
@@ -379,25 +432,50 @@ function ProductForm() {
                   <label className="block font-sans text-xs font-semibold text-[#1C1512] uppercase tracking-wider">
                     Available Colors
                   </label>
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    {COLORS.map((color) => {
-                      const active = selectedColors.includes(color.name);
-                      return (
-                        <button
-                          key={color.name}
-                          type="button"
-                          onClick={() => toggleColor(color.name)}
-                          title={color.name}
-                          className={`w-9 h-9 rounded-full transition-all cursor-pointer flex-shrink-0 ${
-                            active
-                              ? "ring-2 ring-offset-2 ring-[#C9956A] scale-110"
-                              : "ring-1 ring-gray-200 hover:scale-105"
-                          }`}
-                          style={{ backgroundColor: color.hex }}
-                        />
-                      );
-                    })}
+                  <p className="font-sans text-[11px] text-[#8C8682] -mt-1">
+                    Type any colour name or code (e.g. <span className="font-semibold">Wine Red, #722F37, 01</span>) and press Enter or Add.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={colorInput}
+                      onChange={(e) => setColorInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addColor();
+                        }
+                      }}
+                      placeholder="Enter a colour..."
+                      className="flex-1 px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={addColor}
+                      className="px-4 py-2.5 bg-[#1C1007] hover:bg-[#2E1E0F] text-white text-sm font-semibold font-sans rounded-xl transition-colors cursor-pointer"
+                    >
+                      Add
+                    </button>
                   </div>
+                  {selectedColors.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap pt-1">
+                      {selectedColors.map((color) => (
+                        <span
+                          key={color}
+                          className="inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-lg bg-white border border-gray-200 text-[#1C1512] text-sm font-semibold font-sans"
+                        >
+                          {color}
+                          <button
+                            type="button"
+                            onClick={() => removeColor(color)}
+                            className="hover:bg-gray-100 rounded-full p-0.5 cursor-pointer text-[#8C8682]"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -413,18 +491,29 @@ function ProductForm() {
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => { if (!uploadingImage) fileInputRef.current?.click(); }}
                   className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
                     isDragging
                       ? "border-[#C9956A] bg-[#FAF7F2]"
                       : "border-gray-200 hover:border-[#C9956A] hover:bg-[#FAF7F2]/50"
                   }`}
                 >
-                  <ImagePlus className="h-7 w-7 text-[#8C8682]" />
-                  <p className="font-sans text-xs text-[#8C8682] text-center leading-relaxed">
-                    Click or drag to upload<br />
-                    <span className="text-[10px]">JPG, PNG up to 5MB</span>
-                  </p>
+                  {uploadingImage ? (
+                    <>
+                      <Loader2 className="h-7 w-7 animate-spin text-[#C9956A]" />
+                      <p className="font-sans text-xs text-[#8C8682] text-center leading-relaxed">
+                        Uploading image...
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <ImagePlus className="h-7 w-7 text-[#8C8682]" />
+                      <p className="font-sans text-xs text-[#8C8682] text-center leading-relaxed">
+                        Click or drag to upload<br />
+                        <span className="text-[10px]">JPG, PNG up to 5MB</span>
+                      </p>
+                    </>
+                  )}
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -432,6 +521,7 @@ function ProductForm() {
                     multiple
                     className="hidden"
                     onChange={(e) => handleImageFiles(e.target.files)}
+                    disabled={uploadingImage}
                   />
                 </div>
 

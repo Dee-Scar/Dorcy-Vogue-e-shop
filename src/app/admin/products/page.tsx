@@ -33,7 +33,7 @@ export default function ProductsPage() {
       try {
         const { data, error } = await supabase
           .from("products")
-          .select("*")
+          .select("id,name,category,price,stock,status,image")
           .order("created_at", { ascending: false });
 
         if (error) throw error;

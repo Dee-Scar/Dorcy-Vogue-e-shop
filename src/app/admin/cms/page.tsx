@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
-import { Edit2, Eye, Globe, Plus, Trash2, GripVertical, CheckCircle, HelpCircle, Phone, Mail, MapPin, Sparkles, Sliders, Loader2, X } from "lucide-react";
+import { Edit2, Eye, Globe, Plus, Trash2, CheckCircle, HelpCircle, Phone, Mail, MapPin, Sparkles, Sliders, Loader2, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 interface Slide {
@@ -18,6 +18,14 @@ interface FAQSection {
   id: number;
   title: string;
   questionsCount: number;
+}
+
+interface CatalogProduct {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  image: string;
 }
 
 export default function CMSPage() {
@@ -42,6 +50,32 @@ export default function CMSPage() {
   const [slideSubtitle, setSlideSubtitle] = useState("");
   const [slideImage, setSlideImage] = useState("");
   const [slideStatus, setSlideStatus] = useState<"Active" | "Draft">("Active");
+  const [uploadingSlideImage, setUploadingSlideImage] = useState(false);
+
+  // Featured Products picker
+  const [showFeaturedModal, setShowFeaturedModal] = useState(false);
+  const [catalog, setCatalog] = useState<CatalogProduct[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [featuredSearch, setFeaturedSearch] = useState("");
+
+  const openFeaturedModal = async () => {
+    setShowFeaturedModal(true);
+    if (catalog.length === 0) {
+      setCatalogLoading(true);
+      const { data } = await supabase
+        .from("products")
+        .select("id,name,category,price,image")
+        .order("created_at", { ascending: false });
+      if (data) setCatalog(data as CatalogProduct[]);
+      setCatalogLoading(false);
+    }
+  };
+
+  const toggleFeatured = (name: string) => {
+    setFeaturedProducts((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  };
 
   useEffect(() => {
     async function fetchCMS() {
@@ -163,16 +197,31 @@ export default function CMSPage() {
     }
   };
 
-  const handleSlideImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSlideImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setSlideImage(event.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image is larger than 5MB. Please choose a smaller one.");
+      return;
+    }
+    setUploadingSlideImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload-image", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to upload image");
+      setSlideImage(data.url);
+    } catch (err) {
+      console.error("Error uploading slide image:", err);
+      alert(err instanceof Error ? err.message : "Failed to upload image.");
+    } finally {
+      setUploadingSlideImage(false);
+    }
   };
 
   if (loading) {
@@ -335,7 +384,7 @@ export default function CMSPage() {
                   <h2 className="font-serif text-base font-bold text-[#1C1512]">Featured Products</h2>
                 </div>
                 <button
-                  onClick={() => alert("Manage featured products catalog coming soon!")}
+                  onClick={openFeaturedModal}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#C9956A]/20 hover:border-[#C9956A]/40 text-[#C9956A] text-xs font-bold font-sans rounded-lg transition-colors cursor-pointer"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
@@ -343,20 +392,37 @@ export default function CMSPage() {
                 </button>
               </div>
 
+              <p className="font-sans text-xs text-[#8C8682] -mt-1">
+                These products appear in the &quot;Featured Products&quot; section on the home page. Remember to <span className="font-semibold">Publish Changes</span> to go live.
+              </p>
+
               {/* Items List */}
-              <div className="space-y-2">
-                {featuredProducts.map((prod, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-3.5 bg-[#FAF7F2]/50 border border-gray-100 rounded-xl hover:border-gray-200 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <GripVertical className="w-4 h-4 text-[#8C8682] cursor-grab" />
-                      <span className="font-sans text-sm font-semibold text-[#1C1512]">{prod}</span>
+              {featuredProducts.length === 0 ? (
+                <div className="p-6 text-center border border-dashed border-gray-200 rounded-xl">
+                  <p className="font-sans text-sm text-[#8C8682]">No featured products yet. Click <span className="font-semibold text-[#C9956A]">Manage</span> to choose some.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {featuredProducts.map((prod, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3.5 bg-[#FAF7F2]/50 border border-gray-100 rounded-xl hover:border-gray-200 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-5 h-5 flex items-center justify-center rounded bg-[#C9956A]/10 text-[#C9956A] text-[10px] font-bold">{idx + 1}</span>
+                        <span className="font-sans text-sm font-semibold text-[#1C1512]">{prod}</span>
+                      </div>
+                      <button
+                        onClick={() => toggleFeatured(prod)}
+                        className="p-1.5 text-[#8C8682] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        title="Remove from featured"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -538,12 +604,14 @@ export default function CMSPage() {
                     onChange={(e) => setSlideImage(e.target.value)}
                     className="flex-1 px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
                   />
-                  <label className="flex items-center justify-center px-4 bg-white border border-gray-200 hover:border-gray-300 text-xs font-semibold rounded-xl cursor-pointer select-none">
-                    Upload
+                  <label className={`flex items-center justify-center gap-1.5 px-4 bg-white border border-gray-200 hover:border-gray-300 text-xs font-semibold rounded-xl select-none ${uploadingSlideImage ? "opacity-60 cursor-wait" : "cursor-pointer"}`}>
+                    {uploadingSlideImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                    {uploadingSlideImage ? "Uploading" : "Upload"}
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleSlideImageUpload}
+                      disabled={uploadingSlideImage}
                       className="hidden"
                     />
                   </label>
@@ -594,6 +662,93 @@ export default function CMSPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Featured Products Picker Modal */}
+      {showFeaturedModal && (
+        <div className="fixed inset-0 bg-[#120E0D]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl max-w-lg w-full flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
+              <div>
+                <h2 className="font-serif text-xl font-bold text-[#1C1512]">Featured Products</h2>
+                <p className="font-sans text-xs text-[#8C8682] mt-0.5">
+                  {featuredProducts.length} selected
+                </p>
+              </div>
+              <button
+                onClick={() => setShowFeaturedModal(false)}
+                className="p-1 text-[#8C8682] hover:text-[#1C1512] rounded-lg cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 pt-4 pb-3">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={featuredSearch}
+                onChange={(e) => setFeaturedSearch(e.target.value)}
+                className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 pb-4 space-y-2">
+              {catalogLoading ? (
+                <div className="py-12 flex justify-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#C9956A]" />
+                </div>
+              ) : catalog.length === 0 ? (
+                <p className="py-12 text-center font-sans text-sm text-[#8C8682]">No products found. Add products first.</p>
+              ) : (
+                catalog
+                  .filter((p) =>
+                    p.name.toLowerCase().includes(featuredSearch.toLowerCase()) ||
+                    (p.category || "").toLowerCase().includes(featuredSearch.toLowerCase())
+                  )
+                  .map((p) => {
+                    const active = featuredProducts.includes(p.name);
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => toggleFeatured(p.name)}
+                        className={`w-full flex items-center gap-3 p-2.5 rounded-xl border text-left transition-colors cursor-pointer ${
+                          active
+                            ? "border-[#C9956A] bg-[#C9956A]/5"
+                            : "border-gray-100 hover:border-gray-200"
+                        }`}
+                      >
+                        <div className="w-11 h-11 rounded-lg bg-[#FAF7F2] border border-gray-100 overflow-hidden flex-shrink-0">
+                          {p.image && <img src={p.image} alt={p.name} className="w-full h-full object-cover" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-sans text-sm font-semibold text-[#1C1512] truncate">{p.name}</p>
+                          <p className="font-sans text-xs text-[#8C8682]">{p.category} · ₦{Number(p.price).toLocaleString()}</p>
+                        </div>
+                        <span
+                          className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 ${
+                            active ? "bg-[#C9956A] border-[#C9956A]" : "border-gray-300"
+                          }`}
+                        >
+                          {active && <CheckCircle className="w-4 h-4 text-white" />}
+                        </span>
+                      </button>
+                    );
+                  })
+              )}
+            </div>
+
+            <div className="flex items-center justify-between gap-3 p-6 pt-4 border-t border-gray-100">
+              <p className="font-sans text-xs text-[#8C8682]">Don&apos;t forget to Publish Changes.</p>
+              <button
+                onClick={() => setShowFeaturedModal(false)}
+                className="px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

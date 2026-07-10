@@ -36,34 +36,36 @@ export default function ShopPage() {
     async function fetchData() {
       try {
         const [prodRes, catRes] = await Promise.all([
-          supabase.from("products").select("*").eq("status", "Active"),
-          supabase.from("categories").select("*").eq("status", "Active"),
+          supabase
+            .from("products")
+            .select("id,name,price,image,images,category,description,sizes,colors")
+            .eq("status", "Active"),
+          supabase.from("categories").select("name").eq("status", "Active"),
         ]);
-        
+
         if (prodRes.error) throw prodRes.error;
         if (catRes.error) throw catRes.error;
 
-        if (prodRes.data && prodRes.data.length > 0) {
-          const formatted: Product[] = prodRes.data.map((p: any) => ({
-            id: p.id,
-            name: p.name,
+        if (prodRes.data) {
+          const formatted: Product[] = prodRes.data.map((p: Record<string, unknown>) => ({
+            id: p.id as string,
+            name: p.name as string,
             price: Number(p.price),
             formattedPrice: "₦" + Number(p.price).toLocaleString(),
-            image: p.image,
-            images: p.images || [],
-            category: p.category,
-            description: p.description,
-            sizes: p.sizes || [],
-            colors: p.colors || [],
-            details: p.details || []
+            image: p.image as string,
+            images: (p.images as string[]) || [],
+            category: p.category as string,
+            description: (p.description as string) || "",
+            sizes: (p.sizes as string[]) || [],
+            colors: (p.colors as string[]) || [],
+            details: [],
           }));
           setProducts(formatted);
         }
 
         if (catRes.data) {
-          setDbCategories(catRes.data.map(c => c.name));
+          setDbCategories(catRes.data.map((c) => c.name));
         }
-
       } catch (err) {
         console.error("Error fetching shop data from database:", err);
       } finally {
@@ -79,6 +81,13 @@ export default function ShopPage() {
   const [maxPrice, setMaxPrice] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
+
+  // Honor category deep-link from the home page (e.g. /shop?category=Dresses)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get("category");
+    if (cat) setSelectedCategories([cat]);
+  }, []);
 
   // Handle category check toggle
   const handleCategoryToggle = (category: string) => {
@@ -151,7 +160,7 @@ export default function ShopPage() {
                 Categories
               </h3>
               <div className="space-y-2.5">
-                {CATEGORIES.map((category) => {
+                {(dbCategories.length > 0 ? dbCategories : CATEGORIES).map((category) => {
                   const isChecked = selectedCategories.includes(category);
                   return (
                     <label key={category} className="flex items-center space-x-3 cursor-pointer group">
@@ -271,17 +280,34 @@ export default function ShopPage() {
             </div>
 
             {/* Grid display */}
-            {sortedProducts.length === 0 ? (
+            {loading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 pt-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-xl overflow-hidden border border-[#1C1512]/5 animate-pulse">
+                    <div className="aspect-[4/5] w-full bg-[#1C1512]/5" />
+                    <div className="p-5 space-y-3">
+                      <div className="h-4 bg-[#1C1512]/5 rounded w-3/4" />
+                      <div className="h-4 bg-[#1C1512]/5 rounded w-1/3" />
+                      <div className="h-10 bg-[#1C1512]/5 rounded-lg" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : sortedProducts.length === 0 ? (
               <div className="py-20 text-center space-y-3">
                 <p className="font-sans text-base text-[#8C8682]">
-                  No products matched your search or filters.
+                  {products.length === 0
+                    ? "No products available yet. Please check back soon."
+                    : "No products matched your search or filters."}
                 </p>
-                <button
-                  onClick={resetFilters}
-                  className="px-6 py-2.5 bg-[#B78A62] text-white font-sans text-xs font-semibold rounded-lg hover:bg-[#9E734D] transition-colors cursor-pointer"
-                >
-                  Clear Filters
-                </button>
+                {products.length > 0 && (
+                  <button
+                    onClick={resetFilters}
+                    className="px-6 py-2.5 bg-[#B78A62] text-white font-sans text-xs font-semibold rounded-lg hover:bg-[#9E734D] transition-colors cursor-pointer"
+                  >
+                    Clear Filters
+                  </button>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 pt-2">
