@@ -188,7 +188,20 @@ function ProductForm() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    
+
+    // Auto-capture any size/colour still typed in the input boxes but not yet
+    // added as a chip, so a forgotten Enter/Add press doesn't lose the value.
+    const pendingSize = sizeInput.trim();
+    const pendingColor = colorInput.trim();
+    const finalSizes =
+      pendingSize && !selectedSizes.includes(pendingSize)
+        ? [...selectedSizes, pendingSize]
+        : selectedSizes;
+    const finalColors =
+      pendingColor && !selectedColors.includes(pendingColor)
+        ? [...selectedColors, pendingColor]
+        : selectedColors;
+
     try {
       const productData = {
         id: productId || `p${Date.now()}`,
@@ -198,8 +211,8 @@ function ProductForm() {
         category,
         stock: Number(stock) || 0,
         status,
-        sizes: selectedSizes,
-        colors: selectedColors,
+        sizes: finalSizes,
+        colors: finalColors,
         image: images[0] || "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80",
         images: images,
         video_url: videoUrl || null,

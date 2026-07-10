@@ -342,6 +342,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             <div className="space-y-5">
               
               {/* Size Selector */}
+              {product.sizes.length > 0 && (
               <div className="space-y-2">
                 <span className="block font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">
                   Size
@@ -365,6 +366,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                   })}
                 </div>
               </div>
+              )}
 
               {/* Color Selector */}
               {product.colors.length > 0 && (
