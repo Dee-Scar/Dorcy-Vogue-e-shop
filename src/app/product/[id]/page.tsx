@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { CheckoutModal } from "@/components/CheckoutModal";
+import { ProductCard } from "@/components/ProductCard";
 import { useCart } from "@/context/CartContext";
 import { PRODUCTS, Product } from "@/data/products";
 import { Minus, Plus, ArrowLeft, Heart, Share2, Play, X } from "lucide-react";
@@ -57,6 +58,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   // Retrieve Product State
   const [product, setProduct] = useState<Product | undefined>(() => PRODUCTS.find((p) => p.id === id));
   const [loading, setLoading] = useState(true);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -109,6 +111,43 @@ export default function ProductPage({ params }: ProductPageProps) {
       setSelectedSize(product.sizes[0] || "M");
       setSelectedColor(product.colors[0] || "");
     }
+  }, [product]);
+
+  // Fetch "You May Also Like" — other active products, preferring the same category.
+  useEffect(() => {
+    if (!product) return;
+    async function fetchRelated() {
+      try {
+        const { data } = await supabase
+          .from("products")
+          .select("id,name,price,image,images,category,description,sizes,colors")
+          .eq("status", "Active")
+          .neq("id", product!.id)
+          .limit(20);
+
+        if (!data) return;
+        const mapped: Product[] = data.map((p: Record<string, unknown>) => ({
+          id: p.id as string,
+          name: p.name as string,
+          price: Number(p.price),
+          formattedPrice: "₦" + Number(p.price).toLocaleString(),
+          image: p.image as string,
+          images: (p.images as string[]) || [],
+          category: p.category as string,
+          description: (p.description as string) || "",
+          sizes: (p.sizes as string[]) || [],
+          colors: (p.colors as string[]) || [],
+          details: [],
+        }));
+        // Prefer same category, then fill with others, cap at 4.
+        const sameCat = mapped.filter((p) => p.category === product!.category);
+        const others = mapped.filter((p) => p.category !== product!.category);
+        setRelatedProducts([...sameCat, ...others].slice(0, 4));
+      } catch (err) {
+        console.error("Error fetching related products:", err);
+      }
+    }
+    fetchRelated();
   }, [product]);
 
   if (!product) {
@@ -436,6 +475,25 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
 
         </div>
+
+        {/* You May Also Like */}
+        {relatedProducts.length > 0 && (
+          <section className="mt-16 sm:mt-20">
+            <div className="flex flex-col gap-1 mb-8">
+              <span className="font-sans text-xs font-bold text-[#B78A62] uppercase tracking-widest">
+                Curated For You
+              </span>
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#1C1512] tracking-wide">
+                You May Also Like
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              {relatedProducts.map((rp) => (
+                <ProductCard key={rp.id} product={rp} />
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Global Modals */}

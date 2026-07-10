@@ -38,12 +38,30 @@ export default function Home() {
       try {
         const [cmsRes, productsRes, categoriesRes] = await Promise.all([
           supabase.from("cms_settings").select("*").eq("id", 1).single(),
-          supabase.from("products").select("*").eq("status", "Active"),
+          supabase
+            .from("products")
+            .select("id,name,price,image,images,category,description,sizes,colors")
+            .eq("status", "Active"),
           supabase.from("categories").select("*").eq("status", "Active")
         ]);
 
         if (cmsRes.data) setCmsSettings(cmsRes.data);
-        if (productsRes.data) setProducts(productsRes.data);
+        if (productsRes.data) {
+          const mapped: Product[] = productsRes.data.map((p: Record<string, unknown>) => ({
+            id: p.id as string,
+            name: p.name as string,
+            price: Number(p.price),
+            formattedPrice: "₦" + Number(p.price).toLocaleString(),
+            image: p.image as string,
+            images: (p.images as string[]) || [],
+            category: p.category as string,
+            description: (p.description as string) || "",
+            sizes: (p.sizes as string[]) || [],
+            colors: (p.colors as string[]) || [],
+            details: [],
+          }));
+          setProducts(mapped);
+        }
         if (categoriesRes.data) setCategories(categoriesRes.data);
       } catch (err) {
         console.error("Error fetching homepage data:", err);

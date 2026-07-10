@@ -66,11 +66,14 @@ export async function POST(req: NextRequest) {
       const { error: createError } = await supabaseAdmin.storage.createBucket(bucketName, {
         public: true,
         fileSizeLimit: 104857600, // 100MB
-        allowedMimeTypes: ["video/*"],
       });
-      if (createError) {
+      // Only a genuine failure (not "already exists") should abort the upload
+      if (createError && !/already exists/i.test(createError.message)) {
         console.error("Error creating bucket:", createError);
-        // Don't fail — bucket might already exist
+        return NextResponse.json(
+          { error: `Could not create video storage bucket: ${createError.message}` },
+          { status: 500 }
+        );
       }
     }
 
