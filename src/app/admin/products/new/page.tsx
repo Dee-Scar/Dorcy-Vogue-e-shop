@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
-import { ArrowLeft, ImagePlus, X, Loader2 } from "lucide-react";
+import { ArrowLeft, ImagePlus, X, Loader2, Globe } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -39,6 +39,9 @@ function ProductForm() {
 
   const [loading, setLoading] = useState(!!productId);
   const [saving, setSaving] = useState(false);
+  // "save" = save with the chosen status; "publish" = save AND force it live (Active).
+  const [savingMode, setSavingMode] = useState<"save" | "publish" | null>(null);
+  const publishRef = useRef(false);
 
   useEffect(() => {
     // Fetch categories from the database
@@ -187,7 +190,15 @@ function ProductForm() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Was this triggered by the "Publish" button? If so, force the product live.
+    const publishing = publishRef.current;
+    publishRef.current = false;
+    const effectiveStatus = publishing ? "Active" : status;
+    if (publishing) setStatus("Active");
+
     setSaving(true);
+    setSavingMode(publishing ? "publish" : "save");
 
     // Auto-capture any size/colour still typed in the input boxes but not yet
     // added as a chip, so a forgotten Enter/Add press doesn't lose the value.
@@ -210,7 +221,7 @@ function ProductForm() {
         price: Number(price) || 0,
         category,
         stock: Number(stock) || 0,
-        status,
+        status: effectiveStatus,
         sizes: finalSizes,
         colors: finalColors,
         image: images[0] || "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80",
@@ -238,13 +249,14 @@ function ProductForm() {
 
       if (error) throw error;
 
-      alert("Product saved successfully!");
+      alert(publishing ? "Product published live! It is now visible on the shop." : "Product saved successfully!");
       router.push("/admin/products");
     } catch (err) {
       console.error("Error saving product:", err);
       alert("Failed to save product: " + (err instanceof Error ? err.message : "unknown error"));
     } finally {
       setSaving(false);
+      setSavingMode(null);
     }
   };
 
@@ -281,11 +293,23 @@ function ProductForm() {
           <button
             form="product-form"
             type="submit"
+            onClick={() => { publishRef.current = false; }}
             disabled={saving}
+            className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2 bg-white border border-[#C9956A]/40 hover:border-[#C9956A] text-[#A87A52] text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+          >
+            {saving && savingMode === "save" ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            Save Product
+          </button>
+          <button
+            form="product-form"
+            type="submit"
+            onClick={() => { publishRef.current = true; }}
+            disabled={saving}
+            title="Save and make this product live on the shop"
             className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer disabled:opacity-50"
           >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            Save Product
+            {saving && savingMode === "publish" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
+            Publish Live
           </button>
         </div>
       </header>
