@@ -76,9 +76,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
       if (itemsError) throw itemsError;
 
-      // 3. Clear cart and redirect
+      // 3. Clear cart and go straight to the bank-transfer + receipt page.
+      // (No "payment successful" screen here — payment is only confirmed once
+      // the admin verifies the receipt.)
       clearCart();
-      router.push(`/checkout/success?amount=${orderTotal}&ref=${orderRef}`);
+      router.push(`/checkout/upload?ref=${orderRef}&amount=${orderTotal}`);
       onClose();
       setStep("form");
     } catch (err: any) {
@@ -249,7 +251,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             <div className="p-16 flex flex-col items-center justify-center text-center space-y-4">
               <div className="w-12 h-12 border-4 border-[#B78A62] border-t-transparent rounded-full animate-spin" />
               <div>
-                <h3 className="font-serif text-xl font-bold text-[#1C1512]">Processing Payment</h3>
+                <h3 className="font-serif text-xl font-bold text-[#1C1512]">Placing Your Order</h3>
                 <p className="font-sans text-sm text-[#8C8682] mt-1">
                   Please do not refresh the page or click back.
                 </p>

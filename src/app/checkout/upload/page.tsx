@@ -4,7 +4,7 @@ import React, { useState, useRef, Suspense, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Upload, X, CheckCircle, FileText, ArrowRight, Loader2, Copy, Check } from "lucide-react";
+import { Upload, X, Clock, FileText, ArrowRight, Loader2, Copy, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 
@@ -385,16 +385,16 @@ function UploadPageContent() {
               className="bg-white rounded-2xl p-8 sm:p-10 max-w-md w-full text-center space-y-6 shadow-2xl relative z-10 border border-[#1C1512]/5"
             >
               <div className="flex justify-center">
-                <div className="p-3.5 bg-green-50 rounded-full text-green-600 border border-green-100 shadow-sm">
-                  <CheckCircle className="h-12 w-12" />
+                <div className="p-3.5 bg-amber-50 rounded-full text-amber-600 border border-amber-100 shadow-sm">
+                  <Clock className="h-12 w-12" />
                 </div>
               </div>
               <div className="space-y-2">
                 <h3 className="font-serif text-2xl font-bold text-[#1C1512]">
-                  Receipt Submitted!
+                  Receipt Received — Awaiting Confirmation
                 </h3>
                 <p className="font-sans text-xs sm:text-sm text-[#8C8682] leading-relaxed">
-                  Thank you for submitting your payment receipt. We will verify your transaction and notify you via email shortly.
+                  Thank you. Your payment is <span className="font-semibold text-[#1C1512]">not confirmed yet</span> — our team will verify your receipt and mark your order as <span className="font-semibold text-[#1C1512]">Payment Confirmed</span>. You can follow the status any time under Track My Order.
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
