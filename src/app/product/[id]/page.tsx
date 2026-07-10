@@ -46,6 +46,19 @@ const COLOR_MAP: Record<string, string> = {
   "Warm Cream": "#F6F1EA",
 };
 
+// Resolve a real CSS colour for a swatch from an admin-entered value.
+// Handles hex codes (#722F37), known names in COLOR_MAP, and any valid CSS
+// colour ("red", "navy"...). Returns null for arbitrary labels/codes ("01",
+// "Peach Mix") so we show the name instead of a misleading swatch.
+function resolveSwatch(color: string): string | null {
+  const c = (color || "").trim();
+  if (!c) return null;
+  if (COLOR_MAP[c]) return COLOR_MAP[c];
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(c)) return c;
+  if (typeof window !== "undefined" && window.CSS?.supports?.("color", c)) return c;
+  return null;
+}
+
 interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
@@ -372,30 +385,28 @@ export default function ProductPage({ params }: ProductPageProps) {
               {product.colors.length > 0 && (
                 <div className="space-y-2">
                   <span className="block font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">
-                    Color
+                    Color{selectedColor ? <span className="text-[#8C8682] font-semibold normal-case ml-1">· {selectedColor}</span> : null}
                   </span>
-                  <div className="flex items-center space-x-3.5">
+                  <div className="flex flex-wrap gap-2.5">
                     {product.colors.map((color) => {
                       const isSelected = selectedColor === color;
-                      const swatchBg = COLOR_MAP[color] || "#C19A6B";
+                      const swatch = resolveSwatch(color);
                       return (
                         <button
                           key={color}
                           onClick={() => setSelectedColor(color)}
-                          className={`w-7.5 h-7.5 rounded-full border flex items-center justify-center transition-all duration-300 relative cursor-pointer ${
-                            isSelected
-                              ? "border-[#B78A62] scale-110"
-                              : "border-[#1C1512]/10 hover:border-[#1C1512]/30"
-                          }`}
                           title={color}
+                          className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg font-sans border transition-all duration-200 cursor-pointer ${
+                            isSelected
+                              ? "bg-[#B78A62] border-[#B78A62] text-white shadow-sm"
+                              : "bg-white border-[#1C1512]/10 hover:border-[#1C1512]/30 text-[#1C1512]"
+                          }`}
                         >
                           <span
-                            className="w-5.5 h-5.5 rounded-full block border border-black/5"
-                            style={{ backgroundColor: swatchBg }}
+                            className={`w-4 h-4 rounded-full border block flex-shrink-0 ${isSelected ? "border-white/60" : "border-black/10"}`}
+                            style={swatch ? { backgroundColor: swatch } : { background: "linear-gradient(135deg,#e5e0d8,#c9c2b6)" }}
                           />
-                          {isSelected && (
-                            <span className="absolute -inset-1 rounded-full border border-[#B78A62]/75 animate-ping opacity-45 pointer-events-none" />
-                          )}
+                          {color}
                         </button>
                       );
                     })}
