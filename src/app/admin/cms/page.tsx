@@ -210,12 +210,22 @@ export default function CMSPage() {
     }
     setUploadingSlideImage(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload-image", { method: "POST", body: formData });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to upload image");
-      setSlideImage(data.url);
+      // Direct-to-Storage upload via a signed token (bypasses Vercel's body limit).
+      const ext = file.name.split(".").pop() || "bin";
+      const signRes = await fetch("/api/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bucket: "product-images", ext }),
+      });
+      const sign = await signRes.json();
+      if (!signRes.ok) throw new Error(sign.error || "Could not start upload");
+
+      const { error } = await supabase.storage
+        .from("product-images")
+        .uploadToSignedUrl(sign.path, sign.token, file, { contentType: file.type });
+      if (error) throw new Error(error.message);
+
+      setSlideImage(sign.publicUrl);
     } catch (err) {
       console.error("Error uploading slide image:", err);
       alert(err instanceof Error ? err.message : "Failed to upload image.");

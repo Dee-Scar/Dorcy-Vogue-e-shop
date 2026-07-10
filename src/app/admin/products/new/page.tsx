@@ -105,6 +105,27 @@ function ProductForm() {
   const removeColor = (color: string) =>
     setSelectedColors((prev) => prev.filter((c) => c !== color));
 
+  // Upload the file DIRECTLY to Supabase Storage using a signed upload token.
+  // The file never passes through the Vercel serverless function, so we avoid
+  // Vercel's ~4.5MB request-body limit ("Request Entity Too Large").
+  const uploadToStorage = async (bucket: string, file: File): Promise<string> => {
+    const ext = file.name.split(".").pop() || "bin";
+    const signRes = await fetch("/api/upload-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bucket, ext }),
+    });
+    const sign = await signRes.json();
+    if (!signRes.ok) throw new Error(sign.error || "Could not start upload");
+
+    const { error } = await supabase.storage
+      .from(bucket)
+      .uploadToSignedUrl(sign.path, sign.token, file, { contentType: file.type });
+    if (error) throw new Error(error.message);
+
+    return sign.publicUrl as string;
+  };
+
   // Upload images to Supabase Storage (returns public URLs, not base64) so the
   // catalogue stays lightweight and loads fast.
   const handleImageFiles = async (files: FileList | null) => {
@@ -117,16 +138,12 @@ function ProductForm() {
     try {
       for (const file of toUpload) {
         if (!file.type.startsWith("image/")) continue;
-        if (file.size > 5 * 1024 * 1024) {
-          alert(`"${file.name}" is larger than 5MB and was skipped.`);
+        if (file.size > 10 * 1024 * 1024) {
+          alert(`"${file.name}" is larger than 10MB and was skipped.`);
           continue;
         }
-        const formData = new FormData();
-        formData.append("file", file);
-        const res = await fetch("/api/upload-image", { method: "POST", body: formData });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Failed to upload image");
-        setImages((prev) => [...prev, data.url].slice(0, 4));
+        const url = await uploadToStorage("product-images", file);
+        setImages((prev) => [...prev, url].slice(0, 4));
       }
     } catch (err) {
       console.error("Error uploading image:", err);
@@ -151,23 +168,18 @@ function ProductForm() {
       return;
     }
 
+    if (file.size > 100 * 1024 * 1024) {
+      alert("Video is larger than 100MB. Please upload a shorter/compressed clip.");
+      return;
+    }
+
     setUploadingVideo(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload-video", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to upload video");
-
-      setVideoUrl(data.url);
-    } catch (err: any) {
+      const url = await uploadToStorage("product-videos", file);
+      setVideoUrl(url);
+    } catch (err) {
       console.error("Error uploading video:", err);
-      alert(err.message || "Failed to upload video.");
+      alert(err instanceof Error ? err.message : "Failed to upload video.");
     } finally {
       setUploadingVideo(false);
     }
