@@ -83,6 +83,30 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       router.push(`/checkout/upload?ref=${orderRef}&amount=${orderTotal}`);
       onClose();
       setStep("form");
+
+      // 4. Fire admin email notification (non-blocking — don't await)
+      fetch("/api/notify-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "new_order",
+          orderId: orderRef,
+          customerName: fullName,
+          customerEmail: email,
+          customerPhone: phone,
+          address: address,
+          items: cartItems.map((item) => ({
+            name: item.name,
+            size: item.size,
+            color: item.color || "Default",
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          subtotal: cartTotal,
+          shippingCost,
+          total: orderTotal,
+        }),
+      }).catch(() => {/* silently ignore if notification fails */});
     } catch (err: any) {
       alert("Error placing order: " + (err.message || err));
       setStep("form");

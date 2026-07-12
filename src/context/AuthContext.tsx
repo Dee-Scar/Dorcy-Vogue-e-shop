@@ -101,6 +101,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: email,
       });
       setIsAuthModalOpen(false);
+
+      // Fire admin email notification (non-blocking — don't await)
+      fetch("/api/notify-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "new_signup",
+          userName: name,
+          userEmail: email,
+        }),
+      }).catch(() => {/* silently ignore if notification fails */});
     }
     return { success: true };
   };
