@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const ADMIN_EMAIL = "dorcyben001@gmail.com";
+const ADMIN_EMAIL = "dorcyvogue@gmail.com";
 const FROM_EMAIL = "Dorcy Vogue <notifications@dorcyvogue.com>";
 
 export const dynamic = "force-dynamic";
