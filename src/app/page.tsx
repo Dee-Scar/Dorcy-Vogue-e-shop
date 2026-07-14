@@ -76,12 +76,17 @@ export default function Home() {
     };
     document.addEventListener("visibilitychange", onVisibility);
 
-    // Poll every 60 seconds
-    const interval = setInterval(() => fetchData(true), 60000);
+    // Subscribe to real-time product changes via Supabase
+    const channel = supabase
+      .channel("products-home")
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
+        fetchData(true);
+      })
+      .subscribe();
 
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
-      clearInterval(interval);
+      supabase.removeChannel(channel);
     };
   }, []);
 

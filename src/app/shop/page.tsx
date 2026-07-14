@@ -78,12 +78,17 @@ export default function ShopPage() {
     };
     document.addEventListener("visibilitychange", onVisibility);
 
-    // Also poll every 60 seconds in the background
-    const interval = setInterval(() => fetchData(true), 60000);
+    // Subscribe to real-time product changes via Supabase
+    const channel = supabase
+      .channel("products-shop")
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
+        fetchData(true);
+      })
+      .subscribe();
 
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
-      clearInterval(interval);
+      supabase.removeChannel(channel);
     };
   }, []);
 
