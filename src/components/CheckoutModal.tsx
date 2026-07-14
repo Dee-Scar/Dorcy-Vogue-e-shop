@@ -160,6 +160,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                 </div>
 
                 <div className="space-y-4">
+                  {/* Important Notice */}
+                  <div className="flex gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl">
+                    <div className="shrink-0 mt-0.5">
+                      <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                      </svg>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-sans text-[11px] font-bold text-amber-700 uppercase tracking-wider">
+                        Important Notice — Delivery Within Kaduna
+                      </p>
+                      <p className="font-sans text-xs text-amber-700 leading-relaxed">
+                        We can't guarantee an exact delivery time. Our rider moves from one location to another until all deliveries are completed. The rider will call before coming.
+                      </p>
+                    </div>
+                  </div>
+
                   <h3 className="font-sans text-xs font-bold text-[#B78A62] uppercase tracking-wider">
                     1. Shipping Information
                   </h3>
