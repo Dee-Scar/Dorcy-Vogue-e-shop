@@ -112,14 +112,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
         <button
           onClick={handleAddToCart}
           disabled={isOutOfStock}
-          className={`mt-auto w-full flex items-center justify-center space-x-2 px-4 py-3 font-sans text-sm font-semibold rounded-lg shadow-sm transition-all duration-300 ${
+          className={`mt-auto w-full flex items-center justify-center gap-1.5 px-2 py-2.5 font-sans text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition-all duration-300 ${
             isOutOfStock
               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
               : "bg-[#B78A62] text-white hover:bg-[#9E734D] group-hover:shadow-md cursor-pointer"
           }`}
         >
-          <ShoppingCart className="h-4 w-4" />
-          <span>{isOutOfStock ? "Out of Stock" : "Add to Cart"}</span>
+          <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+          <span className="truncate">{isOutOfStock ? "Out of Stock" : "Add to Cart"}</span>
         </button>
       </div>
     </motion.div>
