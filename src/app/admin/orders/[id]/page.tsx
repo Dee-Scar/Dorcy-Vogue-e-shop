@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
-import { ArrowLeft, Truck, FileText, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, Truck, FileText, Loader2, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type OrderStatus = "Pending Payment" | "Awaiting Verification" | "Payment Confirmed" | "Preparing Order" | "Driver Assigned" | "Shipped" | "Delivered";
@@ -48,6 +48,7 @@ export default function OrderDetailsPage() {
   const [updating, setUpdating] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [tempDriverName, setTempDriverName] = useState("");
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
 
   useEffect(() => {
     async function fetchOrder() {
@@ -493,15 +494,13 @@ export default function OrderDetailsPage() {
 
               {/* Action Button */}
               {order.receipt_url ? (
-                <a
-                  href={order.receipt_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => setShowReceiptModal(true)}
                   className="w-full py-2.5 bg-[#C9956A] hover:bg-[#A87A52] text-white font-sans text-sm font-semibold rounded-xl shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   View Full Receipt
-                  <ExternalLink className="h-4 w-4" />
-                </a>
+                  <FileText className="h-4 w-4" />
+                </button>
               ) : (
                 <div className="w-full py-2.5 bg-gray-100 text-gray-400 font-sans text-sm font-semibold rounded-xl text-center">
                   No Receipt Available
@@ -601,6 +600,42 @@ export default function OrderDetailsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt Viewer Modal */}
+      {showReceiptModal && order?.receipt_url && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={() => setShowReceiptModal(false)}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm cursor-pointer"
+          />
+          <div className="relative z-10 bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
+              <h3 className="font-sans text-sm font-semibold text-[#1C1512]">Payment Receipt — {order.id}</h3>
+              <button
+                onClick={() => setShowReceiptModal(false)}
+                className="p-1.5 text-[#8C8682] hover:text-[#1C1512] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-4 flex items-center justify-center bg-[#FAF7F2] min-h-[400px] max-h-[75vh] overflow-auto">
+              {order.receipt_url.toLowerCase().endsWith(".pdf") ? (
+                <iframe
+                  src={order.receipt_url}
+                  className="w-full h-[65vh] rounded-lg border border-gray-200"
+                  title="Payment Receipt"
+                />
+              ) : (
+                <img
+                  src={order.receipt_url}
+                  alt="Payment Receipt"
+                  className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-sm"
+                />
+              )}
+            </div>
           </div>
         </div>
       )}
