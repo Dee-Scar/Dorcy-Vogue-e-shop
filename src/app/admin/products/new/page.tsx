@@ -249,6 +249,9 @@ function ProductForm() {
 
       if (error) throw error;
 
+      // Silently revalidate customer-facing pages
+      fetch("/api/revalidate", { method: "POST" }).catch(() => {});
+
       alert(publishing ? "Product published live! It is now visible on the shop." : "Product saved successfully!");
       router.push("/admin/products");
     } catch (err) {

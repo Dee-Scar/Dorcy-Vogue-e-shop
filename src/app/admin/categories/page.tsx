@@ -146,6 +146,7 @@ export default function CategoriesPage() {
       setCategories((prev) => [...prev, { name: newCat.name, image: newCat.image, productsCount: 0, featured: newCat.featured, status: newCat.status as "Active" | "Draft" }]);
       setNewCatName(""); setNewCatImage(""); setNewCatStatus("Active"); setNewCatFeatured(false);
       setShowAddModal(false);
+      fetch("/api/revalidate", { method: "POST" }).catch(() => {});
     } catch (err) {
       console.error("Error adding category:", err);
       alert("Failed to add category.");
@@ -178,6 +179,7 @@ export default function CategoriesPage() {
       }
       setCategories((prev) => prev.map((c) => c.name === editOriginalName ? { ...c, ...updatedFields } : c));
       setShowEditModal(false);
+      fetch("/api/revalidate", { method: "POST" }).catch(() => {});
     } catch (err) {
       console.error("Error editing category:", err);
       alert("Failed to update category.");

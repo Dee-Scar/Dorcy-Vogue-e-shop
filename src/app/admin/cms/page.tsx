@@ -173,6 +173,10 @@ export default function CMSPage() {
         .eq("id", 1);
 
       if (error) throw error;
+
+      // Silently revalidate customer-facing pages
+      fetch("/api/revalidate", { method: "POST" }).catch(() => {});
+
       alert("CMS content published live successfully!");
     } catch (err) {
       console.error("Error publishing CMS:", err);
