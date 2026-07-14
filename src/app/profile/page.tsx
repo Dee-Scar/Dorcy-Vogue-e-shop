@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { useAuth } from "@/context/AuthContext";
-import { Edit3, Check, Loader2, ArrowRight, Bell, Shield, Globe } from "lucide-react";
+import { Edit3, Check, Loader2, ArrowRight, Bell, Shield, Globe, Lock, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -91,6 +91,59 @@ function ProfilePageContent() {
   // Settings states
   const [notifyOrder, setNotifyOrder] = useState(true);
   const [notifyPromo, setNotifyPromo] = useState(false);
+
+  // Change password states
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+  // Detect recovery session — when the user arrives from a password reset email
+  // Supabase fires an AUTH_CHANGE event with type "PASSWORD_RECOVERY"
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setActiveTab("settings");
+        setShowPasswordForm(true);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+
+    if (newPassword.length < 6) {
+      setPasswordError("Password must be at least 6 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Passwords do not match.");
+      return;
+    }
+
+    setPasswordSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setPasswordSuccess(true);
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => {
+        setPasswordSuccess(false);
+        setShowPasswordForm(false);
+      }, 3000);
+    } catch (err: any) {
+      setPasswordError(err.message || "Failed to update password.");
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -422,14 +475,119 @@ function ProfilePageContent() {
                   </div>
 
                   <div className="space-y-4 pt-2">
-                    <button
-                      onClick={() => alert("Mock password reset link sent to your email.")}
-                      className="text-xs sm:text-sm font-bold text-[#B78A62] hover:text-[#9E734D] transition-colors cursor-pointer"
-                    >
-                      Reset Password
-                    </button>
+                    <AnimatePresence mode="wait">
+                      {!showPasswordForm && !passwordSuccess ? (
+                        <motion.button
+                          key="trigger"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          onClick={() => { setShowPasswordForm(true); setPasswordError(""); }}
+                          className="flex items-center space-x-2 text-xs sm:text-sm font-bold text-[#B78A62] hover:text-[#9E734D] transition-colors cursor-pointer"
+                        >
+                          <Lock className="h-3.5 w-3.5" />
+                          <span>Change Password</span>
+                        </motion.button>
+                      ) : passwordSuccess ? (
+                        <motion.div
+                          key="success"
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          className="flex items-center space-x-2 text-green-600 font-sans text-sm font-semibold"
+                        >
+                          <Check className="h-4 w-4" />
+                          <span>Password updated successfully!</span>
+                        </motion.div>
+                      ) : (
+                        <motion.form
+                          key="form"
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          onSubmit={handlePasswordChange}
+                          className="space-y-3"
+                        >
+                          <p className="text-xs font-bold text-[#1C1512] uppercase tracking-wider">Change Password</p>
+
+                          {/* New Password */}
+                          <div className="space-y-1">
+                            <label className="font-sans text-[10px] font-semibold text-[#8C8682] uppercase tracking-wider">New Password</label>
+                            <div className="relative">
+                              <Lock className="absolute left-3 top-3 h-3.5 w-3.5 text-[#8C8682]" />
+                              <input
+                                type={showNewPw ? "text" : "password"}
+                                required
+                                placeholder="Min. 6 characters"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="w-full pl-9 pr-9 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-sm focus:outline-none focus:border-[#B78A62] font-sans"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowNewPw(!showNewPw)}
+                                className="absolute right-3 top-3 text-[#8C8682] hover:text-[#1C1512] cursor-pointer"
+                              >
+                                {showNewPw ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Confirm Password */}
+                          <div className="space-y-1">
+                            <label className="font-sans text-[10px] font-semibold text-[#8C8682] uppercase tracking-wider">Confirm Password</label>
+                            <div className="relative">
+                              <Lock className="absolute left-3 top-3 h-3.5 w-3.5 text-[#8C8682]" />
+                              <input
+                                type={showConfirmPw ? "text" : "password"}
+                                required
+                                placeholder="Repeat new password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full pl-9 pr-9 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-sm focus:outline-none focus:border-[#B78A62] font-sans"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPw(!showConfirmPw)}
+                                className="absolute right-3 top-3 text-[#8C8682] hover:text-[#1C1512] cursor-pointer"
+                              >
+                                {showConfirmPw ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Error */}
+                          {passwordError && (
+                            <p className="text-xs font-semibold text-red-500">{passwordError}</p>
+                          )}
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-3 pt-1">
+                            <button
+                              type="submit"
+                              disabled={passwordSaving}
+                              className="px-5 py-2 bg-[#B78A62] hover:bg-[#9E734D] text-white font-sans text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex items-center space-x-1.5 disabled:opacity-60"
+                            >
+                              {passwordSaving ? (
+                                <><Loader2 className="h-3.5 w-3.5 animate-spin" /><span>Saving...</span></>
+                              ) : (
+                                <span>Update Password</span>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setShowPasswordForm(false); setPasswordError(""); setNewPassword(""); setConfirmPassword(""); }}
+                              className="px-4 py-2 bg-[#FAF7F2] border border-[#1C1512]/10 text-[#1C1512] font-sans text-xs font-semibold rounded-lg hover:bg-[#f0ece6] transition-colors cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </motion.form>
+                      )}
+                    </AnimatePresence>
+
                     <p className="text-[11px] text-[#8C8682] font-semibold leading-relaxed">
-                      Your credentials are saved locally in the mock workspace session database and encrypted using standard browser containers.
+                      Your account is secured with encrypted credentials via Supabase Auth.
                     </p>
                   </div>
                 </div>
