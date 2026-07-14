@@ -15,7 +15,16 @@ interface StoreSettings {
   accountName: string;
   flatDeliveryFee: string;
   freeDeliveryThreshold: string;
+  stateFees: Record<string, number>;
 }
+
+const NIGERIA_STATES = [
+  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno",
+  "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT - Abuja", "Gombe",
+  "Imo", "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi", "Kwara",
+  "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo", "Plateau",
+  "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara",
+];
 
 const DEFAULT_SETTINGS: StoreSettings = {
   storeName: "DORCY VOGUE",
@@ -26,6 +35,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   accountName: "Dorcy Vogue Enterprises",
   flatDeliveryFee: "3500",
   freeDeliveryThreshold: "50000",
+  stateFees: Object.fromEntries(NIGERIA_STATES.map((s) => [s, 3500])),
 };
 
 export default function SettingsPage() {
@@ -63,6 +73,14 @@ export default function SettingsPage() {
 
   const updateField = (key: keyof StoreSettings, value: string) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
+    setSaved(false);
+  };
+
+  const updateStateFee = (state: string, value: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      stateFees: { ...prev.stateFees, [state]: Number(value) || 0 },
+    }));
     setSaved(false);
   };
 
@@ -258,6 +276,52 @@ export default function SettingsPage() {
               <p className="text-xs text-[#8C8682] font-sans">
                 Orders above the free delivery threshold will have shipping cost automatically waived at checkout.
               </p>
+            </div>
+
+            {/* Per-State Delivery Fees */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
+              <div className="flex items-center justify-between border-b border-gray-50 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <Truck className="w-5 h-5 text-[#C9956A]" />
+                  <h2 className="font-serif text-base font-bold text-[#1C1512]">Delivery Fee Per State</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const fee = prompt("Set same fee for all states (₦):");
+                    if (fee !== null && !isNaN(Number(fee))) {
+                      setSettings((prev) => ({
+                        ...prev,
+                        stateFees: Object.fromEntries(NIGERIA_STATES.map((s) => [s, Number(fee)])),
+                      }));
+                      setSaved(false);
+                    }
+                  }}
+                  className="text-xs font-semibold font-sans text-[#C9956A] hover:text-[#A87A52] cursor-pointer"
+                >
+                  Set all to same fee
+                </button>
+              </div>
+              <p className="text-xs text-[#8C8682] font-sans -mt-2">
+                Set the delivery fee for each Nigerian state. Customers select their state at checkout and this fee is added to their order.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {NIGERIA_STATES.map((state) => (
+                  <div key={state} className="flex items-center gap-2">
+                    <span className="font-sans text-xs font-semibold text-[#1C1512] w-32 shrink-0 truncate">{state}</span>
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#8C8682] font-sans">₦</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={settings.stateFees?.[state] ?? 3500}
+                        onChange={(e) => updateStateFee(state, e.target.value)}
+                        className="w-full pl-7 pr-2 py-2 bg-[#FAF7F2] border border-gray-100 rounded-lg text-sm font-sans text-[#1C1512] focus:outline-none focus:border-[#C9956A] transition"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Security note */}

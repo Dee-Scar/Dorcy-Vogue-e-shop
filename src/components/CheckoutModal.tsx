@@ -1,13 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { X, ShoppingBag, Truck } from "lucide-react";
+import { X, Truck } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+
+const NIGERIA_STATES = [
+  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno",
+  "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT - Abuja", "Gombe",
+  "Imo", "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi", "Kwara",
+  "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo", "Plateau",
+  "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara",
+];
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -18,30 +26,50 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   const { cartItems, cartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
-  const [step, setStep] = useState<"form" | "loading" | "success">("form");
+  const [step, setStep] = useState<"form" | "loading">("form");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
+  const [selectedState, setSelectedState] = useState("");
+
+  // State delivery fees loaded from admin settings
+  const [stateFees, setStateFees] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    async function loadStateFees() {
+      try {
+        const { data } = await supabase
+          .from("cms_settings")
+          .select("store_settings")
+          .eq("id", 1)
+          .single();
+        if (data?.store_settings?.stateFees) {
+          setStateFees(data.store_settings.stateFees);
+        }
+      } catch {
+        // silently fail — shipping will show as 0
+      }
+    }
+    if (isOpen) loadStateFees();
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  // Shipping is always free
-  const shippingCost = 0;
+  const shippingCost = selectedState ? (stateFees[selectedState] ?? 0) : 0;
   const orderTotal = cartTotal + shippingCost;
   const orderRef = "DV-" + Math.floor(100000 + Math.random() * 900000);
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !address || !phone) {
-      alert("Please fill in all required shipping fields.");
+    if (!fullName || !email || !address || !phone || !selectedState) {
+      alert("Please fill in all required fields including your state.");
       return;
     }
 
     setStep("loading");
 
     try {
-      // 1. Insert order record
       const { error: orderError } = await supabase
         .from("orders")
         .insert({
@@ -50,16 +78,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           full_name: fullName,
           email: email,
           address: address,
+          state: selectedState,
           phone: phone,
           shipping_cost: shippingCost,
           total_amount: orderTotal,
           payment_status: "Pending Payment",
-          status: "Pending Payment"
+          status: "Pending Payment",
         });
 
       if (orderError) throw orderError;
 
-      // 2. Insert order items record
       const itemsToInsert = cartItems.map((item) => ({
         order_id: orderRef,
         product_id: item.id,
@@ -67,7 +95,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
         size: item.size,
         color: item.color || "Default",
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
       }));
 
       const { error: itemsError } = await supabase
@@ -76,15 +104,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
       if (itemsError) throw itemsError;
 
-      // 3. Clear cart and go straight to the bank-transfer + receipt page.
-      // (No "payment successful" screen here — payment is only confirmed once
-      // the admin verifies the receipt.)
       clearCart();
       router.push(`/checkout/upload?ref=${orderRef}&amount=${orderTotal}`);
       onClose();
       setStep("form");
 
-      // 4. Fire admin email notification (non-blocking — don't await)
+      // Fire admin email notification (non-blocking)
       fetch("/api/notify-admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,7 +119,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           customerName: fullName,
           customerEmail: email,
           customerPhone: phone,
-          address: address,
+          address: `${address}, ${selectedState}`,
           items: cartItems.map((item) => ({
             name: item.name,
             size: item.size,
@@ -106,7 +131,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           shippingCost,
           total: orderTotal,
         }),
-      }).catch(() => {/* silently ignore if notification fails */});
+      }).catch(() => {});
     } catch (err: any) {
       alert("Error placing order: " + (err.message || err));
       setStep("form");
@@ -148,7 +173,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
           {step === "form" && (
             <div className="grid grid-cols-1 md:grid-cols-2 max-h-[90vh] md:max-h-[85vh] overflow-y-auto">
-              {/* Left Column: Form details */}
+              {/* Left Column: Form */}
               <form onSubmit={handlePlaceOrder} className="p-8 md:p-10 space-y-6">
                 <div>
                   <h2 className="font-serif text-2xl font-bold text-[#1C1512] tracking-wide">
@@ -180,6 +205,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                   <h3 className="font-sans text-xs font-bold text-[#B78A62] uppercase tracking-wider">
                     1. Shipping Information
                   </h3>
+
                   <div className="space-y-3">
                     <input
                       type="text"
@@ -187,7 +213,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                       placeholder="Full Name"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-sm focus:outline-none focus:border-[#B78A62] font-sans"
+                      className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-base focus:outline-none focus:border-[#B78A62] font-sans"
                     />
                     <input
                       type="email"
@@ -195,23 +221,42 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-sm focus:outline-none focus:border-[#B78A62] font-sans"
+                      className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-base focus:outline-none focus:border-[#B78A62] font-sans"
                     />
                     <input
                       type="text"
                       required
-                      placeholder="Shipping Address (Nigeria)"
+                      placeholder="Shipping Address"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-sm focus:outline-none focus:border-[#B78A62] font-sans"
+                      className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-base focus:outline-none focus:border-[#B78A62] font-sans"
                     />
+                    {/* State dropdown */}
+                    <div className="relative">
+                      <select
+                        required
+                        value={selectedState}
+                        onChange={(e) => setSelectedState(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-base focus:outline-none focus:border-[#B78A62] font-sans appearance-none cursor-pointer text-[#1C1512]"
+                      >
+                        <option value="" disabled>Select State</option>
+                        {NIGERIA_STATES.map((state) => (
+                          <option key={state} value={state}>
+                            {state}{stateFees[state] ? ` — ₦${stateFees[state].toLocaleString()} delivery` : ""}
+                          </option>
+                        ))}
+                      </select>
+                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8C8682] pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                     <input
                       type="tel"
                       required
                       placeholder="Phone Number (e.g. +234...)"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-sm focus:outline-none focus:border-[#B78A62] font-sans"
+                      className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-base focus:outline-none focus:border-[#B78A62] font-sans"
                     />
                   </div>
                 </div>
@@ -270,10 +315,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                   </div>
                   <div className="flex justify-between text-[#8C8682] items-center">
                     <span className="flex items-center gap-1">
-                      <Truck className="h-4 w-4" /> Shipping
+                      <Truck className="h-4 w-4" />
+                      Delivery{selectedState ? ` (${selectedState})` : ""}
                     </span>
                     <span className="font-bold text-[#1C1512]">
-                      {shippingCost > 0 ? `₦${shippingCost.toLocaleString()}` : "—"}
+                      {!selectedState ? "Select state" : shippingCost > 0 ? `₦${shippingCost.toLocaleString()}` : "—"}
                     </span>
                   </div>
                   <hr className="border-[#1C1512]/10" />
