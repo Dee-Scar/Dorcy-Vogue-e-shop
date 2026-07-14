@@ -164,6 +164,17 @@ export default function ProductPage({ params }: ProductPageProps) {
     fetchRelated();
   }, [product]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col pt-[80px] bg-[#FAF7F2]">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="w-10 h-10 border-4 border-[#B78A62] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="min-h-screen flex flex-col pt-[80px] bg-[#FAF7F2]">
