@@ -20,7 +20,10 @@ export async function GET() {
 
     if (error) throw error;
 
-    return NextResponse.json({ products: data || [] });
+    const response = NextResponse.json({ products: data || [] });
+    // Prevent any caching so customers always get fresh data
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    return response;
   } catch (err: any) {
     console.error("Error fetching products:", err);
     return NextResponse.json({ products: [], error: err.message }, { status: 500 });

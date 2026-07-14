@@ -33,41 +33,56 @@ export default function Home() {
   const [cmsSettings, setCmsSettings] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [cmsRes, productsRes, categoriesRes] = await Promise.all([
-          supabase.from("cms_settings").select("*").eq("id", 1).single(),
-          fetch("/api/products").then((r) => r.json()),
-          supabase.from("categories").select("*").eq("status", "Active")
-        ]);
+  async function fetchData(silent = false) {
+    try {
+      const [cmsRes, productsRes, categoriesRes] = await Promise.all([
+        supabase.from("cms_settings").select("*").eq("id", 1).single(),
+        fetch("/api/products", { cache: "no-store" }).then((r) => r.json()),
+        supabase.from("categories").select("*").eq("status", "Active")
+      ]);
 
-        if (cmsRes.data) setCmsSettings(cmsRes.data);
-        if (productsRes.products) {
-          const mapped: Product[] = productsRes.products.map((p: Record<string, unknown>) => ({
-            id: p.id as string,
-            name: p.name as string,
-            price: Number(p.price),
-            formattedPrice: "₦" + Number(p.price).toLocaleString(),
-            image: p.image as string,
-            images: (p.images as string[]) || [],
-            category: p.category as string,
-            description: (p.description as string) || "",
-            sizes: (p.sizes as string[]) || [],
-            colors: (p.colors as string[]) || [],
-            details: [],
-            status: (p.status as string) || "Active",
-          }));
-          setProducts(mapped);
-        }
-        if (categoriesRes.data) setCategories(categoriesRes.data);
-      } catch (err) {
-        console.error("Error fetching homepage data:", err);
-      } finally {
-        setIsLoading(false);
+      if (cmsRes.data) setCmsSettings(cmsRes.data);
+      if (productsRes.products) {
+        const mapped: Product[] = productsRes.products.map((p: Record<string, unknown>) => ({
+          id: p.id as string,
+          name: p.name as string,
+          price: Number(p.price),
+          formattedPrice: "₦" + Number(p.price).toLocaleString(),
+          image: p.image as string,
+          images: (p.images as string[]) || [],
+          category: p.category as string,
+          description: (p.description as string) || "",
+          sizes: (p.sizes as string[]) || [],
+          colors: (p.colors as string[]) || [],
+          details: [],
+          status: (p.status as string) || "Active",
+        }));
+        setProducts(mapped);
       }
+      if (categoriesRes.data) setCategories(categoriesRes.data);
+    } catch (err) {
+      console.error("Error fetching homepage data:", err);
+    } finally {
+      if (!silent) setIsLoading(false);
     }
+  }
+
+  useEffect(() => {
     fetchData();
+
+    // Refetch silently when tab becomes visible again
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") fetchData(true);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    // Poll every 60 seconds
+    const interval = setInterval(() => fetchData(true), 60000);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      clearInterval(interval);
+    };
   }, []);
 
   const [currentSlide, setCurrentSlide] = useState(0);

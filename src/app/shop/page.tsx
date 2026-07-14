@@ -32,45 +32,59 @@ export default function ShopPage() {
   const [dbCategories, setDbCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [prodRes, catRes] = await Promise.all([
-          fetch("/api/products").then((r) => r.json()),
-          supabase.from("categories").select("name").eq("status", "Active"),
-        ]);
+  async function fetchData(silent = false) {
+    try {
+      const [prodRes, catRes] = await Promise.all([
+        fetch("/api/products", { cache: "no-store" }).then((r) => r.json()),
+        supabase.from("categories").select("name").eq("status", "Active"),
+      ]);
 
-        const catRes2 = catRes;
-        if (catRes2.error) throw catRes2.error;
+      if (catRes.error) throw catRes.error;
 
-        if (prodRes.products) {
-          const formatted: Product[] = prodRes.products.map((p: Record<string, unknown>) => ({
-            id: p.id as string,
-            name: p.name as string,
-            price: Number(p.price),
-            formattedPrice: "₦" + Number(p.price).toLocaleString(),
-            image: p.image as string,
-            images: (p.images as string[]) || [],
-            category: p.category as string,
-            description: (p.description as string) || "",
-            sizes: (p.sizes as string[]) || [],
-            colors: (p.colors as string[]) || [],
-            details: [],
-            status: (p.status as string) || "Active",
-          }));
-          setProducts(formatted);
-        }
-
-        if (catRes2.data) {
-          setDbCategories(catRes2.data.map((c) => c.name));
-        }
-      } catch (err) {
-        console.error("Error fetching shop data from database:", err);
-      } finally {
-        setLoading(false);
+      if (prodRes.products) {
+        const formatted: Product[] = prodRes.products.map((p: Record<string, unknown>) => ({
+          id: p.id as string,
+          name: p.name as string,
+          price: Number(p.price),
+          formattedPrice: "₦" + Number(p.price).toLocaleString(),
+          image: p.image as string,
+          images: (p.images as string[]) || [],
+          category: p.category as string,
+          description: (p.description as string) || "",
+          sizes: (p.sizes as string[]) || [],
+          colors: (p.colors as string[]) || [],
+          details: [],
+          status: (p.status as string) || "Active",
+        }));
+        setProducts(formatted);
       }
+
+      if (catRes.data) {
+        setDbCategories(catRes.data.map((c: any) => c.name));
+      }
+    } catch (err) {
+      console.error("Error fetching shop data from database:", err);
+    } finally {
+      if (!silent) setLoading(false);
     }
+  }
+
+  useEffect(() => {
     fetchData();
+
+    // Refetch silently whenever the tab becomes visible again
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") fetchData(true);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    // Also poll every 60 seconds in the background
+    const interval = setInterval(() => fetchData(true), 60000);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      clearInterval(interval);
+    };
   }, []);
 
   // Filtering & Sorting States
