@@ -458,11 +458,11 @@ export default function ProductPage({ params }: ProductPageProps) {
             </div>
 
             {/* Actions Bar */}
-            <div className="flex gap-3.5 pt-4">
+            <div className="flex flex-wrap gap-3 pt-4">
               {product.status === "Out of Stock" ? (
-                <div className="flex-grow py-4 bg-gray-100 text-gray-400 font-sans text-sm font-semibold rounded-xl text-center flex items-center justify-center gap-2">
-                  <ShoppingCart className="h-4 w-4" />
-                  Out of Stock — Check Back Soon
+                <div className="w-full py-4 bg-gray-100 text-gray-400 font-sans text-xs sm:text-sm font-semibold rounded-xl text-center flex items-center justify-center gap-2">
+                  <ShoppingCart className="h-4 w-4 flex-shrink-0" />
+                  <span>Out of Stock — Check Back Soon</span>
                 </div>
               ) : (
                 <button
