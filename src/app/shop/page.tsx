@@ -36,19 +36,15 @@ export default function ShopPage() {
     async function fetchData() {
       try {
         const [prodRes, catRes] = await Promise.all([
-          supabase
-            .from("products")
-            .select("id,name,price,image,images,category,description,sizes,colors,status")
-            .neq("status", "Draft"),
+          fetch("/api/products").then((r) => r.json()),
           supabase.from("categories").select("name").eq("status", "Active"),
         ]);
 
-        if (prodRes.error) throw prodRes.error;
-        if (catRes.error) throw catRes.error;
+        const catRes2 = catRes;
+        if (catRes2.error) throw catRes2.error;
 
-        if (prodRes.data) {
-          console.log("Products from DB:", prodRes.data.map(p => ({ name: p.name, status: p.status })));
-          const formatted: Product[] = prodRes.data.map((p: Record<string, unknown>) => ({
+        if (prodRes.products) {
+          const formatted: Product[] = prodRes.products.map((p: Record<string, unknown>) => ({
             id: p.id as string,
             name: p.name as string,
             price: Number(p.price),
@@ -65,8 +61,8 @@ export default function ShopPage() {
           setProducts(formatted);
         }
 
-        if (catRes.data) {
-          setDbCategories(catRes.data.map((c) => c.name));
+        if (catRes2.data) {
+          setDbCategories(catRes2.data.map((c) => c.name));
         }
       } catch (err) {
         console.error("Error fetching shop data from database:", err);

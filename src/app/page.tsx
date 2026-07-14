@@ -38,16 +38,13 @@ export default function Home() {
       try {
         const [cmsRes, productsRes, categoriesRes] = await Promise.all([
           supabase.from("cms_settings").select("*").eq("id", 1).single(),
-          supabase
-            .from("products")
-            .select("id,name,price,image,images,category,description,sizes,colors,status")
-            .neq("status", "Draft"),
+          fetch("/api/products").then((r) => r.json()),
           supabase.from("categories").select("*").eq("status", "Active")
         ]);
 
         if (cmsRes.data) setCmsSettings(cmsRes.data);
-        if (productsRes.data) {
-          const mapped: Product[] = productsRes.data.map((p: Record<string, unknown>) => ({
+        if (productsRes.products) {
+          const mapped: Product[] = productsRes.products.map((p: Record<string, unknown>) => ({
             id: p.id as string,
             name: p.name as string,
             price: Number(p.price),

@@ -126,10 +126,34 @@ export default function OrderDetailsPage() {
 
       setOrder({ ...order, status: nextStatus });
 
-      // When payment is confirmed, email the customer
+      // When payment is confirmed, email the customer and decrement stock
       if (nextStatus === "Payment Confirmed" && order.email) {
         const subtotalForEmail = order.items.reduce((acc, item) => acc + item.price * item.qty, 0);
         const totalForEmail = subtotalForEmail + order.delivery_fee;
+
+        // Decrement stock for each ordered item and auto-set Out of Stock if needed
+        try {
+          for (const item of order.items) {
+            // Fetch current stock
+            const { data: productData } = await supabase
+              .from("products")
+              .select("id, stock, status")
+              .eq("name", item.name)
+              .maybeSingle();
+
+            if (productData) {
+              const newStock = Math.max(0, (productData.stock || 0) - item.qty);
+              const newStatus = newStock === 0 ? "Out of Stock" : productData.status;
+              await supabase
+                .from("products")
+                .update({ stock: newStock, status: newStatus })
+                .eq("id", productData.id);
+            }
+          }
+        } catch (stockErr) {
+          console.warn("Stock decrement failed (non-fatal):", stockErr);
+        }
+
         try {
           await fetch("/api/notify-admin", {
             method: "POST",
