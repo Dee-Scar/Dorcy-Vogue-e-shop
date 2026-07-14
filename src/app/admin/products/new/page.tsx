@@ -298,21 +298,10 @@ function ProductForm() {
             type="submit"
             onClick={() => { publishRef.current = false; }}
             disabled={saving}
-            className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2 bg-white border border-[#C9956A]/40 hover:border-[#C9956A] text-[#A87A52] text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+            className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer disabled:opacity-50"
           >
             {saving && savingMode === "save" ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             Save Product
-          </button>
-          <button
-            form="product-form"
-            type="submit"
-            onClick={() => { publishRef.current = true; }}
-            disabled={saving}
-            title="Save and make this product live on the shop"
-            className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer disabled:opacity-50"
-          >
-            {saving && savingMode === "publish" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
-            Publish Live
           </button>
         </div>
       </header>
