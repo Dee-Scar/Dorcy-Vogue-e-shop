@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
                       </tr>
                       <tr>
                         <td style="padding:8px 16px;font-size:13px;color:#8C8682;">Shipping</td>
-                        <td style="padding:8px 16px;font-size:13px;font-weight:700;color:#1C1512;text-align:right;">${Number(shippingCost) === 0 ? "FREE" : "₦" + Number(shippingCost).toLocaleString()}</td>
+                        <td style="padding:8px 16px;font-size:13px;font-weight:700;color:#1C1512;text-align:right;">${Number(shippingCost) === 0 ? "—" : "₦" + Number(shippingCost).toLocaleString()}</td>
                       </tr>
                       <tr style="border-top:2px solid #e8ddd4;">
                         <td style="padding:12px 16px;font-size:15px;font-weight:700;color:#1C1512;">Total</td>
