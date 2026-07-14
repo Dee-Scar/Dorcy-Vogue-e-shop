@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 
 export async function POST(request: Request) {
   try {
@@ -72,6 +73,42 @@ export async function POST(request: Request) {
         { error: `Database update failed: ${updateError.message}` },
         { status: 500 }
       );
+    }
+
+    // Fetch order details to include in admin notification
+    const { data: orderData } = await supabaseAdmin
+      .from("orders")
+      .select("full_name, email, shipping_cost, order_items(price, quantity)")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    const customerName = orderData?.full_name || "Customer";
+    const customerEmail = orderData?.email || "";
+    const total =
+      (orderData?.order_items || []).reduce(
+        (sum: number, item: any) => sum + Number(item.price || 0) * Number(item.quantity || 1),
+        0
+      ) + Number(orderData?.shipping_cost || 0);
+
+    // Fire admin notification — don't block the response if it fails
+    try {
+      const headersList = await headers();
+      const host = headersList.get("host") || "localhost:3000";
+      const protocol = host.includes("localhost") ? "http" : "https";
+      await fetch(`${protocol}://${host}/api/notify-admin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "receipt_uploaded",
+          orderId,
+          customerName,
+          customerEmail,
+          receiptUrl: publicUrl,
+          amount: total,
+        }),
+      });
+    } catch (notifyErr) {
+      console.warn("Admin receipt notification failed (non-fatal):", notifyErr);
     }
 
     return NextResponse.json({ success: true, publicUrl });

@@ -22,6 +22,11 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Forgot password states
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotStatus, setForgotStatus] = useState<"idle" | "sending" | "sent">("idle");
+
   // Redirect if already logged in
   React.useEffect(() => {
     if (user) {
@@ -78,6 +83,22 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setForgotStatus("sending");
+    try {
+      await fetch("/api/send-reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+    } catch (_) {
+      // Always show success to avoid revealing whether email exists
+    }
+    setForgotStatus("sent");
+  };
+
   return (
     <div className="h-screen w-full flex bg-[#FAF7F2] relative overflow-hidden">
       {/* Back Button */}
@@ -113,8 +134,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right Column - Form */}
-      <div className="w-full md:w-[58%] flex items-start justify-center p-6 sm:p-12 md:p-16 h-screen overflow-y-auto pt-24 pb-12 md:py-16">
-        <div className="w-full max-w-md space-y-6 lg:space-y-8 my-auto">
+      <div className="w-full md:w-[58%] flex items-start justify-center p-6 sm:p-12 md:p-16 h-screen overflow-y-auto pt-24 pb-12 md:py-16">        <div className="w-full max-w-md space-y-6 lg:space-y-8 my-auto">
           {/* Segmented Tab Controls */}
           <div className="flex bg-[#F5EFE6] p-1 rounded-xl w-full">
             <button
@@ -232,12 +252,17 @@ export default function LoginPage() {
               {/* Forgot Password (Login Only) */}
               {isLoginTab && (
                 <div className="text-right">
-                  <a
-                    href="#"
-                    className="font-sans text-xs font-semibold text-[#B78A62] hover:text-[#9E734D] hover:underline"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(email);
+                      setForgotStatus("idle");
+                      setShowForgotPassword(true);
+                    }}
+                    className="font-sans text-xs font-semibold text-[#B78A62] hover:text-[#9E734D] hover:underline cursor-pointer bg-transparent border-none p-0"
                   >
                     Forgot Password?
-                  </a>
+                  </button>
                 </div>
               )}
             </div>
@@ -296,6 +321,102 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      <AnimatePresence>
+        {showForgotPassword && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black cursor-pointer"
+              onClick={() => setShowForgotPassword(false)}
+            />
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl relative z-10 border border-[#1C1512]/5 space-y-6"
+            >
+              {forgotStatus === "sent" ? (
+                /* Success state */
+                <div className="text-center space-y-4">
+                  <div className="flex justify-center">
+                    <div className="p-3.5 bg-green-50 rounded-full text-green-600 border border-green-100">
+                      <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <h3 className="font-serif text-xl font-bold text-[#1C1512]">Check Your Email</h3>
+                    <p className="font-sans text-sm text-[#8C8682] leading-relaxed">
+                      If an account exists for <strong className="text-[#1C1512]">{forgotEmail}</strong>, you'll receive a password reset link shortly.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowForgotPassword(false)}
+                    className="w-full py-3 bg-[#B78A62] hover:bg-[#9E734D] text-white font-sans text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+                  >
+                    Back to Sign In
+                  </button>
+                </div>
+              ) : (
+                /* Input state */
+                <>
+                  <div className="space-y-1.5">
+                    <h3 className="font-serif text-xl font-bold text-[#1C1512]">Forgot Password?</h3>
+                    <p className="font-sans text-sm text-[#8C8682] leading-relaxed">
+                      Enter your email address and we'll send you a link to reset your password.
+                    </p>
+                  </div>
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="block font-sans text-xs font-semibold text-[#1C1512] uppercase tracking-wider">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-[#8C8682]" />
+                        <input
+                          type="email"
+                          required
+                          placeholder="you@example.com"
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 bg-white border border-[#1C1512]/10 rounded-xl text-sm focus:outline-none focus:border-[#B78A62] font-sans transition-colors"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotPassword(false)}
+                        className="flex-1 py-3 bg-[#FAF7F2] border border-[#1C1512]/10 text-[#1C1512] font-sans text-sm font-semibold rounded-xl hover:bg-[#f0ece6] transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={forgotStatus === "sending"}
+                        className="flex-1 py-3 bg-[#B78A62] hover:bg-[#9E734D] text-white font-sans text-sm font-semibold rounded-xl transition-colors disabled:opacity-60 cursor-pointer flex items-center justify-center"
+                      >
+                        {forgotStatus === "sending" ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          "Send Reset Link"
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

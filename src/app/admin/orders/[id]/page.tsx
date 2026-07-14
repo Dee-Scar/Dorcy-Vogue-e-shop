@@ -125,6 +125,28 @@ export default function OrderDetailsPage() {
       if (error) throw error;
 
       setOrder({ ...order, status: nextStatus });
+
+      // When payment is confirmed, email the customer
+      if (nextStatus === "Payment Confirmed" && order.email) {
+        const subtotalForEmail = order.items.reduce((acc, item) => acc + item.price * item.qty, 0);
+        const totalForEmail = subtotalForEmail + order.delivery_fee;
+        try {
+          await fetch("/api/notify-admin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "payment_confirmed",
+              orderId: order.id,
+              customerName: order.customer_name,
+              customerEmail: order.email,
+              amount: totalForEmail,
+              items: order.items,
+            }),
+          });
+        } catch (emailErr) {
+          console.warn("Payment confirmation email failed (non-fatal):", emailErr);
+        }
+      }
     } catch (err) {
       console.error("Error updating status:", err);
       alert("Failed to update order status. Please try again.");
