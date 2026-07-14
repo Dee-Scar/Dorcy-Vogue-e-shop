@@ -196,13 +196,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                       </svg>
                     </div>
-                    <div className="space-y-1">
-                      <p className="font-sans text-[11px] font-bold text-amber-700 uppercase tracking-wider">
-                        Important Notice — Delivery Within Kaduna
-                      </p>
-                      <p className="font-sans text-xs text-amber-700 leading-relaxed">
-                        We can't guarantee an exact delivery time. Our rider moves from one location to another until all deliveries are completed. The rider will call before coming.
-                      </p>
+                    <div className="space-y-2">
+                      <div className="space-y-1">
+                        <p className="font-sans text-[11px] font-bold text-amber-700 uppercase tracking-wider">
+                          Important Notice — Delivery Within Kaduna
+                        </p>
+                        <p className="font-sans text-xs text-amber-700 leading-relaxed">
+                          We can't guarantee an exact delivery time. Our rider moves from one location to another until all deliveries are completed. The rider will call before coming.
+                        </p>
+                      </div>
+                      <div className="space-y-1 pt-1 border-t border-amber-200">
+                        <p className="font-sans text-[11px] font-bold text-amber-700 uppercase tracking-wider">
+                          Delivery Outside Kaduna
+                        </p>
+                        <p className="font-sans text-xs text-amber-700 leading-relaxed">
+                          Please note that deliveries outside Kaduna attract different delivery fees. Each state has its own unique delivery charge based on the destination.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
