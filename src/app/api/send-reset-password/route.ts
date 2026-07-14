@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       type: "recovery",
       email,
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://dorcy-vogue-e-shop.vercel.app"}/login`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://dorcyvogue.com"}/login`,
       },
     });
 

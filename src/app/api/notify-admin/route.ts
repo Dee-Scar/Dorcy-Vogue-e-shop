@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
 
                     <!-- CTA -->
                     <div style="text-align:center;">
-                      <a href="https://dorcy-vogue-e-shop.vercel.app/admin/orders" style="display:inline-block;padding:14px 32px;background:#1C1512;color:#fff;font-size:13px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.5px;">
+                      <a href="https://dorcyvogue.com/admin/orders" style="display:inline-block;padding:14px 32px;background:#1C1512;color:#fff;font-size:13px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.5px;">
                         View Order in Admin →
                       </a>
                     </div>
@@ -191,7 +191,7 @@ export async function POST(req: NextRequest) {
                       </tr>
                     </table>
 
-                    <a href="https://dorcy-vogue-e-shop.vercel.app/admin/customers" style="display:inline-block;padding:14px 32px;background:#1C1512;color:#fff;font-size:13px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.5px;">
+                    <a href="https://dorcyvogue.com/admin/customers" style="display:inline-block;padding:14px 32px;background:#1C1512;color:#fff;font-size:13px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.5px;">
                       View Customers →
                     </a>
                   </td>
@@ -283,7 +283,7 @@ export async function POST(req: NextRequest) {
                       <a href="${receiptUrl}" target="_blank" style="display:inline-block;padding:12px 28px;background:#B78A62;color:#fff;font-size:13px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.5px;margin-right:12px;">
                         View Receipt →
                       </a>
-                      <a href="https://dorcy-vogue-e-shop.vercel.app/admin/orders/${orderId}" style="display:inline-block;padding:12px 28px;background:#1C1512;color:#fff;font-size:13px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.5px;">
+                      <a href="https://dorcyvogue.com/admin/orders/${orderId}" style="display:inline-block;padding:12px 28px;background:#1C1512;color:#fff;font-size:13px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.5px;">
                         Confirm Payment →
                       </a>
                     </div>
@@ -393,7 +393,7 @@ export async function POST(req: NextRequest) {
                     </p>
 
                     <div style="text-align:center;">
-                      <a href="https://dorcy-vogue-e-shop.vercel.app/track?ref=${orderId}" style="display:inline-block;padding:14px 36px;background:#B78A62;color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.5px;">
+                      <a href="https://dorcyvogue.com/track?ref=${orderId}" style="display:inline-block;padding:14px 36px;background:#B78A62;color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.5px;">
                         Track My Order →
                       </a>
                     </div>
