@@ -26,8 +26,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
   if (!isOpen) return null;
 
-  // Calculate Shipping (Free over ₦30,000, else ₦3,000)
-  const shippingCost = cartTotal >= 30000 ? 0 : 3000;
+  // Shipping is always free
+  const shippingCost = 0;
   const orderTotal = cartTotal + shippingCost;
   const orderRef = "DV-" + Math.floor(100000 + Math.random() * 900000);
 
