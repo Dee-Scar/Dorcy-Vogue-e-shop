@@ -50,18 +50,18 @@ export const metadata: Metadata = {
     description: "Shop premium Nigerian fashion at Dorcy Vogue. Elegant dresses, baggy jeans, joggers and accessories — delivered within Kaduna.",
     images: [
       {
-        url: "/logo.png",
-        width: 1200,
-        height: 630,
+        url: "/og-image.png",
+        width: 500,
+        height: 500,
         alt: "Dorcy Vogue — Premium Nigerian Fashion",
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Dorcy Vogue | Premium Nigerian Fashion Brand",
     description: "Shop premium Nigerian fashion at Dorcy Vogue. Elegant dresses, baggy jeans, joggers and accessories — delivered within Kaduna.",
-    images: ["/logo.png"],
+    images: ["/og-image.png"],
   },
   icons: {
     icon: "/favicon.ico",
