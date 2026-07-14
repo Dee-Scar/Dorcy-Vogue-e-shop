@@ -338,7 +338,7 @@ export default function Home() {
               >
                 {/* Background image */}
                 <Image
-                  src={CAT_IMAGES[cat.name] || CAT_IMAGES["Basic Tops"]}
+                  src={cat.image || CAT_IMAGES[cat.name] || CAT_IMAGES["Basic Tops"]}
                   alt={cat.name}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
