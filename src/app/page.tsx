@@ -111,10 +111,6 @@ export default function Home() {
     }, 4000);
   };
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center h-screen bg-[#FAF7F2]">Loading...</div>;
-  }
-
   const aboutTitle = cmsSettings?.about_title || "About DORCY VOGUE";
   const aboutDesc = cmsSettings?.about_description || "DORCY VOGUE is a premium fashion brand offering stylish, affordable clothing for the modern Nigerian woman.";
   const contactPhone = cmsSettings?.contact_phone || "08012345678";
