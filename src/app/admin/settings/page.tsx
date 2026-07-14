@@ -60,7 +60,15 @@ export default function SettingsPage() {
           // If column doesn't exist yet, just use defaults
           console.warn("Could not load store_settings:", error.message);
         } else if (data?.store_settings) {
-          setSettings({ ...DEFAULT_SETTINGS, ...data.store_settings });
+          setSettings({
+            ...DEFAULT_SETTINGS,
+            ...data.store_settings,
+            // Deep merge stateFees so new states added to DEFAULT_SETTINGS get defaults
+            stateFees: {
+              ...DEFAULT_SETTINGS.stateFees,
+              ...(data.store_settings.stateFees || {}),
+            },
+          });
         }
       } catch (e) {
         console.warn("Settings load error:", e);
@@ -94,6 +102,9 @@ export default function SettingsPage() {
         .eq("id", 1);
 
       if (error) throw error;
+
+      // Revalidate customer pages so checkout fees update immediately
+      fetch("/api/revalidate", { method: "POST" }).catch(() => {});
 
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
