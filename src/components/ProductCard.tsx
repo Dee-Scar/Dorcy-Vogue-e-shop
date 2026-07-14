@@ -20,6 +20,7 @@ export interface Product {
   sizes: string[];
   colors: string[];
   details: string[];
+  status?: string;
 }
 
 interface ProductCardProps {
@@ -31,14 +32,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   const { addToCart } = useCart();
   const router = useRouter();
 
+  const isOutOfStock = product.status === "Out of Stock";
+
   const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent opening product details when clicking the button
+    e.stopPropagation();
+    if (isOutOfStock) return;
     addToCart({
       id: product.id,
       name: product.name,
       price: product.price,
       image: product.image,
-      size: product.sizes[0] || "M", // Default to first size (usually S or M)
+      size: product.sizes[0] || "M",
     });
   };
 
@@ -63,24 +67,36 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
           alt={product.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          className={`object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${isOutOfStock ? "opacity-60 grayscale" : ""}`}
           priority={false}
         />
-        {/* Hover overlay icons */}
-        <div className="absolute inset-0 bg-[#1C1512]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-3">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleNavigate();
-            }}
-            className="p-3 bg-white text-[#1C1512] rounded-full shadow-lg hover:bg-[#B78A62] hover:text-white transition-colors duration-300"
-            title="View Details"
-          >
-            <Eye className="h-5 w-5" />
-          </motion.button>
-        </div>
+
+        {/* Out of Stock overlay badge */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="bg-[#1C1512]/80 text-white font-sans text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">
+              Out of Stock
+            </span>
+          </div>
+        )}
+
+        {/* Hover overlay icons — only when in stock */}
+        {!isOutOfStock && (
+          <div className="absolute inset-0 bg-[#1C1512]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-3">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNavigate();
+              }}
+              className="p-3 bg-white text-[#1C1512] rounded-full shadow-lg hover:bg-[#B78A62] hover:text-white transition-colors duration-300"
+              title="View Details"
+            >
+              <Eye className="h-5 w-5" />
+            </motion.button>
+          </div>
+        )}
       </div>
 
       {/* Product Info */}
@@ -92,13 +108,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
           {product.formattedPrice}
         </p>
 
-        {/* Add To Cart Button */}
+        {/* Add To Cart / Out of Stock Button */}
         <button
           onClick={handleAddToCart}
-          className="mt-auto w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#B78A62] text-white font-sans text-sm font-semibold rounded-lg shadow-sm hover:bg-[#9E734D] transition-all duration-300 group-hover:shadow-md cursor-pointer"
+          disabled={isOutOfStock}
+          className={`mt-auto w-full flex items-center justify-center space-x-2 px-4 py-3 font-sans text-sm font-semibold rounded-lg shadow-sm transition-all duration-300 ${
+            isOutOfStock
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-[#B78A62] text-white hover:bg-[#9E734D] group-hover:shadow-md cursor-pointer"
+          }`}
         >
           <ShoppingCart className="h-4 w-4" />
-          <span>Add to Cart</span>
+          <span>{isOutOfStock ? "Out of Stock" : "Add to Cart"}</span>
         </button>
       </div>
     </motion.div>

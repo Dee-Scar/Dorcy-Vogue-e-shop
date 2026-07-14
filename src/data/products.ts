@@ -11,6 +11,7 @@ export interface Product {
   colors: string[];
   details: string[];
   videoUrl?: string;
+  status?: string;
 }
 
 export const PRODUCTS: Product[] = [

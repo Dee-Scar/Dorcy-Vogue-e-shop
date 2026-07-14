@@ -8,7 +8,7 @@ import { CheckoutModal } from "@/components/CheckoutModal";
 import { ProductCard } from "@/components/ProductCard";
 import { useCart } from "@/context/CartContext";
 import { PRODUCTS, Product } from "@/data/products";
-import { Minus, Plus, ArrowLeft, Heart, Share2, Play, X } from "lucide-react";
+import { Minus, Plus, ArrowLeft, Heart, Share2, Play, X, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -96,7 +96,8 @@ export default function ProductPage({ params }: ProductPageProps) {
             sizes: data.sizes || [],
             colors: data.colors || [],
             details: data.details || [],
-            videoUrl: data.video_url || undefined
+            videoUrl: data.video_url || undefined,
+            status: data.status || "Active",
           };
           setProduct(formatted);
         }
@@ -336,6 +337,11 @@ export default function ProductPage({ params }: ProductPageProps) {
 
             {/* Title & Price */}
             <div className="space-y-2">
+              {product.status === "Out of Stock" && (
+                <span className="inline-flex items-center px-3 py-1 bg-red-50 border border-red-100 text-red-600 text-xs font-bold font-sans rounded-full uppercase tracking-wider">
+                  Out of Stock
+                </span>
+              )}
               <h1 className="font-serif text-3xl md:text-4xl font-bold text-[#1C1512] tracking-wide leading-tight">
                 {product.name}
               </h1>
@@ -442,12 +448,19 @@ export default function ProductPage({ params }: ProductPageProps) {
 
             {/* Actions Bar */}
             <div className="flex gap-3.5 pt-4">
-              <button
-                onClick={handleAddToCart}
-                className="flex-grow py-4 bg-[#B78A62] hover:bg-[#9E734D] text-white font-sans text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 text-center cursor-pointer"
-              >
-                Add to Cart
-              </button>
+              {product.status === "Out of Stock" ? (
+                <div className="flex-grow py-4 bg-gray-100 text-gray-400 font-sans text-sm font-semibold rounded-xl text-center flex items-center justify-center gap-2">
+                  <ShoppingCart className="h-4 w-4" />
+                  Out of Stock — Check Back Soon
+                </div>
+              ) : (
+                <button
+                  onClick={handleAddToCart}
+                  className="flex-grow py-4 bg-[#B78A62] hover:bg-[#9E734D] text-white font-sans text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 text-center cursor-pointer"
+                >
+                  Add to Cart
+                </button>
+              )}
               
               <button
                 onClick={() => setIsWishlisted(!isWishlisted)}

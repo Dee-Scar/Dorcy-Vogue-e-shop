@@ -188,10 +188,9 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
-                        <button className="p-1.5 text-[#8C8682] hover:text-[#C9956A] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer">
+                        <Link href={`/product/${product.id}`} target="_blank" className="p-1.5 text-[#8C8682] hover:text-[#C9956A] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer">
                           <Eye className="h-4 w-4" />
-                        </button>
-                        <Link href={`/admin/products/new?id=${product.id}`} className="p-1.5 text-[#8C8682] hover:text-[#1C1512] hover:bg-[#FAF7F2] rounded-lg transition-colors">
+                        </Link>                        <Link href={`/admin/products/new?id=${product.id}`} className="p-1.5 text-[#8C8682] hover:text-[#1C1512] hover:bg-[#FAF7F2] rounded-lg transition-colors">
                           <Edit className="h-4 w-4" />
                         </Link>
                         <button 

@@ -52,6 +52,26 @@ export default function CMSPage() {
   const [slideStatus, setSlideStatus] = useState<"Active" | "Draft">("Active");
   const [uploadingSlideImage, setUploadingSlideImage] = useState(false);
 
+  // FAQ edit modal states
+  const [showFaqModal, setShowFaqModal] = useState(false);
+  const [editingFaq, setEditingFaq] = useState<FAQSection | null>(null);
+  const [faqEditTitle, setFaqEditTitle] = useState("");
+
+  const openFaqEdit = (section: FAQSection) => {
+    setEditingFaq(section);
+    setFaqEditTitle(section.title);
+    setShowFaqModal(true);
+  };
+
+  const handleSaveFaq = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFaq || !faqEditTitle.trim()) return;
+    setFaqSections((prev) =>
+      prev.map((s) => s.id === editingFaq.id ? { ...s, title: faqEditTitle.trim() } : s)
+    );
+    setShowFaqModal(false);
+  };
+
   // Featured Products picker
   const [showFeaturedModal, setShowFeaturedModal] = useState(false);
   const [catalog, setCatalog] = useState<CatalogProduct[]>([]);
@@ -533,7 +553,9 @@ export default function CMSPage() {
                       <p className="font-sans text-xs text-[#8C8682] mt-0.5">{section.questionsCount} questions</p>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <button className="p-1.5 text-[#8C8682] hover:text-[#1C1512] hover:bg-white rounded-lg transition-colors cursor-pointer">
+                      <button
+                        onClick={() => openFaqEdit(section)}
+                        className="p-1.5 text-[#8C8682] hover:text-[#1C1512] hover:bg-white rounded-lg transition-colors cursor-pointer">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
@@ -759,6 +781,49 @@ export default function CMSPage() {
                 Done
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* FAQ Edit Modal */}
+      {showFaqModal && (
+        <div className="fixed inset-0 bg-[#120E0D]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl max-w-sm w-full p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <h2 className="font-serif text-xl font-bold text-[#1C1512]">Edit FAQ Section</h2>
+              <button onClick={() => setShowFaqModal(false)} className="p-1 text-[#8C8682] hover:text-[#1C1512] rounded-lg cursor-pointer">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveFaq} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block font-sans text-xs font-semibold text-[#1C1512] uppercase tracking-wider">
+                  Section Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={faqEditTitle}
+                  onChange={(e) => setFaqEditTitle(e.target.value)}
+                  placeholder="e.g. Orders & Shipping"
+                  className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFaqModal(false)}
+                  className="px-4 py-2 bg-white border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-semibold font-sans rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

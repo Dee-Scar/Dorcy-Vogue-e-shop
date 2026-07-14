@@ -59,6 +59,7 @@ export default function ShopPage() {
             sizes: (p.sizes as string[]) || [],
             colors: (p.colors as string[]) || [],
             details: [],
+            status: (p.status as string) || "Active",
           }));
           setProducts(formatted);
         }

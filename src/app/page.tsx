@@ -59,6 +59,7 @@ export default function Home() {
             sizes: (p.sizes as string[]) || [],
             colors: (p.colors as string[]) || [],
             details: [],
+            status: (p.status as string) || "Active",
           }));
           setProducts(mapped);
         }
