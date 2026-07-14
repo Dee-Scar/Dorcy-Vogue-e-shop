@@ -171,7 +171,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onCheckout }) => {
                   </span>
                 </div>
                 <p className="font-sans text-xs text-[#8C8682]">
-                  Shipping calculated at checkout. Free shipping on orders over ₦30,000!
+                  Shipping calculated at checkout. Free shipping on orders over ₦50,000!
                 </p>
                 <div className="flex flex-col gap-2.5">
                   <button

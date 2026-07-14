@@ -268,7 +268,7 @@ export default function Home() {
                   </svg>
                 ),
                 title: "Free Shipping",
-                text: "Complimentary delivery on all orders over ₦30,000",
+                text: "Complimentary delivery on all orders over ₦50,000",
               },
               {
                 icon: (
