@@ -115,7 +115,7 @@ function FAQPageContent() {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    async function loadFAQ() {
+    async function loadFAQ(silent = false) {
       try {
         const { data } = await supabase
           .from("cms_settings")
@@ -124,36 +124,39 @@ function FAQPageContent() {
           .single();
 
         const sections: FAQSection[] = data?.faq_sections || [];
-
-        // Filter to only sections that have at least one question
         const validSections = sections.filter(
           (s) => s.questions && s.questions.length > 0
         );
 
         if (validSections.length > 0) {
           setFaqSections(validSections);
-          // Default open first question of each section
-          const defaults: Record<string, boolean> = {};
-          validSections.forEach((s) => {
-            if (s.questions[0]) defaults[`${s.id}-${s.questions[0].id}`] = true;
-          });
-          setOpenItems(defaults);
+          if (!silent) {
+            const defaults: Record<string, boolean> = {};
+            validSections.forEach((s) => {
+              if (s.questions[0]) defaults[`${s.id}-${s.questions[0].id}`] = true;
+            });
+            setOpenItems(defaults);
+          }
         } else {
-          // Use fallback data
           setFaqSections(FALLBACK_FAQS);
-          const defaults: Record<string, boolean> = {};
-          FALLBACK_FAQS.forEach((s) => {
-            if (s.questions[0]) defaults[`${s.id}-${s.questions[0].id}`] = true;
-          });
-          setOpenItems(defaults);
+          if (!silent) {
+            const defaults: Record<string, boolean> = {};
+            FALLBACK_FAQS.forEach((s) => {
+              if (s.questions[0]) defaults[`${s.id}-${s.questions[0].id}`] = true;
+            });
+            setOpenItems(defaults);
+          }
         }
       } catch {
-        setFaqSections(FALLBACK_FAQS);
+        if (!silent) setFaqSections(FALLBACK_FAQS);
       } finally {
-        setLoading(false);
+        if (!silent) setLoading(false);
       }
     }
+
     loadFAQ();
+    const interval = setInterval(() => loadFAQ(true), 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const toggleItem = (sectionId: number, questionId: number) => {

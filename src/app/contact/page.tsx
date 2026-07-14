@@ -17,11 +17,13 @@ function ContactPageContent() {
   const [cmsSettings, setCmsSettings] = useState<any>(null);
 
   React.useEffect(() => {
-    async function fetchCms() {
+    async function fetchCms(silent = false) {
       const { data } = await supabase.from("cms_settings").select("*").eq("id", 1).single();
       if (data) setCmsSettings(data);
     }
     fetchCms();
+    const interval = setInterval(() => fetchCms(true), 5000);
+    return () => clearInterval(interval);
   }, []);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
