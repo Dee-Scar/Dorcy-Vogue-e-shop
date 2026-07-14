@@ -1,103 +1,96 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
-import { Truck, CreditCard, RotateCcw, ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
-interface FAQItem {
-  id: string;
+interface FAQQuestion {
+  id: number;
   question: string;
   answer: string;
 }
 
-interface FAQGroup {
+interface FAQSection {
+  id: number;
   title: string;
-  icon: React.ReactNode;
-  items: FAQItem[];
+  questions: FAQQuestion[];
 }
 
-const FAQ_GROUPS: FAQGroup[] = [
+// Hardcoded fallback in case CMS has no FAQ data yet
+const FALLBACK_FAQS: FAQSection[] = [
   {
+    id: 1,
     title: "Delivery Questions",
-    icon: <Truck className="h-5 w-5 text-[#B78A62]" />,
-    items: [
+    questions: [
       {
-        id: "del-1",
+        id: 11,
         question: "How long does delivery take?",
-        answer: "Delivery takes 2-5 business days within Lagos and 5-10 business days for other states. You will receive tracking information once your order is shipped.",
+        answer: "Delivery takes 2-5 business days within Kaduna. Our rider will call before coming.",
       },
       {
-        id: "del-2",
-        question: "Do you deliver nationwide?",
-        answer: "Yes, we ship to all 36 states across Nigeria. Delivery charges and delivery timelines vary depending on your specific state and region.",
-      },
-      {
-        id: "del-3",
+        id: 12,
         question: "Can I track my delivery?",
-        answer: "Yes, you can track your package directly on our 'Track Order' page by entering your order reference number and associated phone number.",
+        answer: "Yes, you can track your order on the Track Order page using your order reference number.",
       },
     ],
   },
   {
+    id: 2,
     title: "Payment Information",
-    icon: <CreditCard className="h-5 w-5 text-[#B78A62]" />,
-    items: [
+    questions: [
       {
-        id: "pay-1",
+        id: 21,
         question: "What payment methods do you accept?",
-        answer: "We accept bank transfers to our Access Bank account. After placing your order, bank details will be displayed for you to make payment.",
+        answer: "We accept bank transfers. After placing your order, bank details will be displayed for you to make payment.",
       },
       {
-        id: "pay-2",
-        question: "How do I upload my payment receipt?",
-        answer: "After transferring funds, click on 'Upload Payment Receipt' on the checkout success screen to drag/drop or select your screenshot/file receipt.",
-      },
-      {
-        id: "pay-3",
+        id: 22,
         question: "How long does payment verification take?",
-        answer: "Verification is typically reviewed within 1-2 hours of uploading your receipt, and you will receive status changes on the Track Order dashboard.",
+        answer: "Verification is typically reviewed within 1-2 hours of uploading your receipt.",
       },
     ],
   },
   {
+    id: 3,
     title: "Return Policy",
-    icon: <RotateCcw className="h-5 w-5 text-[#B78A62]" />,
-    items: [
+    questions: [
       {
-        id: "ret-1",
+        id: 31,
         question: "Can I return an item?",
         answer: "Items can be returned within 7 days of delivery if unused and in original packaging. Contact us via WhatsApp to initiate a return.",
-      },
-      {
-        id: "ret-2",
-        question: "How do I get a refund?",
-        answer: "Once your returned package is received and inspected by our team, refunds are processed to your bank account within 3-5 working days.",
       },
     ],
   },
 ];
 
-function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boolean; onToggle: () => void }) {
+function FAQAccordion({
+  item,
+  isOpen,
+  onToggle,
+}: {
+  item: FAQQuestion;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
   return (
-    <div className="border border-[#1C1512]/5 rounded-xl overflow-hidden bg-white shadow-sm transition-all duration-300">
-      {/* Accordion Trigger Header */}
+    <div className="border border-[#1C1512]/5 rounded-xl overflow-hidden bg-white shadow-sm">
       <button
         onClick={onToggle}
-        className="w-full py-4.5 px-5 flex items-center justify-between text-left font-sans text-sm sm:text-base font-bold text-[#1C1512] hover:text-[#B78A62] transition-colors cursor-pointer select-none"
+        className="w-full py-4 px-5 flex items-center justify-between text-left font-sans text-sm sm:text-base font-bold text-[#1C1512] hover:text-[#B78A62] transition-colors cursor-pointer select-none"
       >
         <span>{item.question}</span>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          className="text-[#8C8682]"
+          className="text-[#8C8682] flex-shrink-0 ml-3"
         >
-          <ChevronDown className="h-4.5 w-4.5" />
+          <ChevronDown className="h-4 w-4" />
         </motion.div>
       </button>
 
-      {/* Accordion Collapsible Panel */}
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
@@ -106,7 +99,7 @@ function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boole
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
           >
-            <div className="px-5 pb-5 pt-1.5 font-sans text-xs sm:text-sm text-[#8C8682] leading-relaxed border-t border-[#1C1512]/5 bg-[#FAF7F2]/10 font-semibold">
+            <div className="px-5 pb-5 pt-1.5 font-sans text-xs sm:text-sm text-[#8C8682] leading-relaxed border-t border-[#1C1512]/5 bg-[#FAF7F2]/30 font-semibold">
               {item.answer}
             </div>
           </motion.div>
@@ -117,25 +110,70 @@ function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boole
 }
 
 function FAQPageContent() {
-  // Store multiple open accordion item states (default open first item of each group)
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({
-    "del-1": true,
-    "pay-1": true,
-    "ret-1": true,
-  });
+  const [faqSections, setFaqSections] = useState<FAQSection[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
 
-  const toggleItem = (id: string) => {
-    setOpenItems((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  useEffect(() => {
+    async function loadFAQ() {
+      try {
+        const { data } = await supabase
+          .from("cms_settings")
+          .select("faq_sections")
+          .eq("id", 1)
+          .single();
+
+        const sections: FAQSection[] = data?.faq_sections || [];
+
+        // Filter to only sections that have at least one question
+        const validSections = sections.filter(
+          (s) => s.questions && s.questions.length > 0
+        );
+
+        if (validSections.length > 0) {
+          setFaqSections(validSections);
+          // Default open first question of each section
+          const defaults: Record<string, boolean> = {};
+          validSections.forEach((s) => {
+            if (s.questions[0]) defaults[`${s.id}-${s.questions[0].id}`] = true;
+          });
+          setOpenItems(defaults);
+        } else {
+          // Use fallback data
+          setFaqSections(FALLBACK_FAQS);
+          const defaults: Record<string, boolean> = {};
+          FALLBACK_FAQS.forEach((s) => {
+            if (s.questions[0]) defaults[`${s.id}-${s.questions[0].id}`] = true;
+          });
+          setOpenItems(defaults);
+        }
+      } catch {
+        setFaqSections(FALLBACK_FAQS);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadFAQ();
+  }, []);
+
+  const toggleItem = (sectionId: number, questionId: number) => {
+    const key = `${sectionId}-${questionId}`;
+    setOpenItems((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  if (loading) {
+    return (
+      <div className="flex-grow flex items-center justify-center pt-[80px] bg-[#FAF7F2] min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-[#B78A62]" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-grow flex flex-col pt-[80px] bg-[#FAF7F2] min-h-screen">
       <main className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-10">
-        
-        {/* Title Details */}
+
+        {/* Page Title */}
         <div className="text-center space-y-2">
           <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#1C1512] tracking-wide">
             Frequently Asked Questions
@@ -145,28 +183,28 @@ function FAQPageContent() {
           </p>
         </div>
 
-        {/* FAQ Category Listing */}
+        {/* FAQ Sections */}
         <div className="space-y-10">
-          {FAQ_GROUPS.map((group) => (
-            <div key={group.title} className="space-y-4">
-              {/* Category Group Header Banner */}
+          {faqSections.map((section) => (
+            <div key={section.id} className="space-y-4">
+              {/* Section Header */}
               <div className="bg-[#FAF7F2] border border-[#1C1512]/10 rounded-xl p-4 flex items-center space-x-3 shadow-sm">
                 <div className="p-2 bg-white rounded-lg shadow-sm border border-[#1C1512]/5">
-                  {group.icon}
+                  <HelpCircle className="h-5 w-5 text-[#B78A62]" />
                 </div>
                 <h3 className="font-serif text-base sm:text-lg font-bold text-[#1C1512]">
-                  {group.title}
+                  {section.title}
                 </h3>
               </div>
 
-              {/* Accordion rows */}
-              <div className="space-y-3 pl-0 sm:pl-2">
-                {group.items.map((item) => (
+              {/* Questions */}
+              <div className="space-y-3 sm:pl-2">
+                {(section.questions || []).map((item) => (
                   <FAQAccordion
                     key={item.id}
                     item={item}
-                    isOpen={!!openItems[item.id]}
-                    onToggle={() => toggleItem(item.id)}
+                    isOpen={!!openItems[`${section.id}-${item.id}`]}
+                    onToggle={() => toggleItem(section.id, item.id)}
                   />
                 ))}
               </div>
