@@ -86,8 +86,6 @@ export default function ShopPage() {
       clearInterval(interval);
     };
   }, []);
-    };
-  }, []);
 
   // Filtering & Sorting States
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
