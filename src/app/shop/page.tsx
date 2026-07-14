@@ -47,6 +47,7 @@ export default function ShopPage() {
         if (catRes.error) throw catRes.error;
 
         if (prodRes.data) {
+          console.log("Products from DB:", prodRes.data.map(p => ({ name: p.name, status: p.status })));
           const formatted: Product[] = prodRes.data.map((p: Record<string, unknown>) => ({
             id: p.id as string,
             name: p.name as string,
