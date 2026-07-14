@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { X, Truck } from "lucide-react";
+import { X, Truck, ChevronDown, Search } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -32,6 +32,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [selectedState, setSelectedState] = useState("");
+  const [stateSearch, setStateSearch] = useState("");
+  const [stateDropdownOpen, setStateDropdownOpen] = useState(false);
+  const stateDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (stateDropdownRef.current && !stateDropdownRef.current.contains(e.target as Node)) {
+        setStateDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredStates = NIGERIA_STATES.filter((s) =>
+    s.toLowerCase().includes(stateSearch.toLowerCase())
+  );
 
   // State delivery fees loaded from admin settings
   const [stateFees, setStateFees] = useState<Record<string, number>>({});
@@ -245,24 +263,68 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                       onChange={(e) => setAddress(e.target.value)}
                       className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-base focus:outline-none focus:border-[#B78A62] font-sans"
                     />
-                    {/* State dropdown */}
-                    <div className="relative">
-                      <select
-                        required
-                        value={selectedState}
-                        onChange={(e) => setSelectedState(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-base focus:outline-none focus:border-[#B78A62] font-sans appearance-none cursor-pointer text-[#1C1512]"
+                    {/* State searchable dropdown */}
+                    <div ref={stateDropdownRef} className="relative">
+                      <button
+                        type="button"
+                        onClick={() => { setStateDropdownOpen(!stateDropdownOpen); setStateSearch(""); }}
+                        className={`w-full px-4 py-2.5 bg-[#FAF7F2] border rounded-lg text-base font-sans text-left flex items-center justify-between transition-colors ${
+                          stateDropdownOpen ? "border-[#B78A62]" : "border-[#1C1512]/10"
+                        } ${!selectedState ? "text-[#8C8682]" : "text-[#1C1512]"}`}
                       >
-                        <option value="" disabled>Select State</option>
-                        {NIGERIA_STATES.map((state) => (
-                          <option key={state} value={state}>
-                            {state}{stateFees[state] ? ` — ₦${stateFees[state].toLocaleString()} delivery` : ""}
-                          </option>
-                        ))}
-                      </select>
-                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8C8682] pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                        <span className="truncate">
+                          {selectedState
+                            ? `${selectedState}${stateFees[selectedState] ? ` — ₦${stateFees[selectedState].toLocaleString()} delivery` : ""}`
+                            : "Select State"}
+                        </span>
+                        <ChevronDown className={`h-4 w-4 text-[#8C8682] flex-shrink-0 transition-transform ${stateDropdownOpen ? "rotate-180" : ""}`} />
+                      </button>
+
+                      {stateDropdownOpen && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-[#1C1512]/10 rounded-xl shadow-lg overflow-hidden">
+                          {/* Search input */}
+                          <div className="p-2 border-b border-gray-100">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#8C8682]" />
+                              <input
+                                type="text"
+                                placeholder="Search state..."
+                                value={stateSearch}
+                                onChange={(e) => setStateSearch(e.target.value)}
+                                autoFocus
+                                className="w-full pl-8 pr-3 py-2 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-lg text-sm font-sans focus:outline-none focus:border-[#B78A62] transition-colors"
+                              />
+                            </div>
+                          </div>
+                          {/* State list */}
+                          <ul className="max-h-48 overflow-y-auto">
+                            {filteredStates.length === 0 ? (
+                              <li className="px-4 py-3 text-xs text-[#8C8682] font-sans text-center">No states found</li>
+                            ) : (
+                              filteredStates.map((state) => (
+                                <li key={state}>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedState(state);
+                                      setStateDropdownOpen(false);
+                                      setStateSearch("");
+                                    }}
+                                    className={`w-full text-left px-4 py-2.5 text-sm font-sans hover:bg-[#FAF7F2] transition-colors flex justify-between items-center ${
+                                      selectedState === state ? "bg-[#FAF7F2] text-[#B78A62] font-semibold" : "text-[#1C1512]"
+                                    }`}
+                                  >
+                                    <span>{state}</span>
+                                    {stateFees[state] ? (
+                                      <span className="text-xs text-[#8C8682]">₦{stateFees[state].toLocaleString()}</span>
+                                    ) : null}
+                                  </button>
+                                </li>
+                              ))
+                            )}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                     <input
                       type="tel"
