@@ -256,7 +256,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                       <Truck className="h-4 w-4" /> Shipping
                     </span>
                     <span className="font-bold text-[#1C1512]">
-                      {shippingCost === 0 ? "—" : `₦${shippingCost.toLocaleString()}`}
+                      {shippingCost > 0 ? `₦${shippingCost.toLocaleString()}` : "—"}
                     </span>
                   </div>
                   <hr className="border-[#1C1512]/10" />
