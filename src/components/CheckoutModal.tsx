@@ -51,7 +51,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
         // silently fail — shipping will show as 0
       }
     }
-    if (isOpen) loadStateFees();
+    if (isOpen) {
+      loadStateFees();
+      const interval = setInterval(loadStateFees, 5000);
+      return () => clearInterval(interval);
+    }
   }, [isOpen]);
 
   if (!isOpen) return null;
