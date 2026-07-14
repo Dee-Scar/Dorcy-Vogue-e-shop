@@ -67,7 +67,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
           alt={product.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className={`object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${isOutOfStock ? "opacity-60 grayscale" : ""}`}
+          className={`object-cover transition-transform duration-700 ease-out group-hover:scale-105`}
           priority={false}
         />
 
