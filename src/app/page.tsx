@@ -40,8 +40,8 @@ export default function Home() {
           supabase.from("cms_settings").select("*").eq("id", 1).single(),
           supabase
             .from("products")
-            .select("id,name,price,image,images,category,description,sizes,colors")
-            .eq("status", "Active"),
+            .select("id,name,price,image,images,category,description,sizes,colors,status")
+            .neq("status", "Draft"),
           supabase.from("categories").select("*").eq("status", "Active")
         ]);
 

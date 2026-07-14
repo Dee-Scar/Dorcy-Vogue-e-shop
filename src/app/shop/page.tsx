@@ -38,8 +38,8 @@ export default function ShopPage() {
         const [prodRes, catRes] = await Promise.all([
           supabase
             .from("products")
-            .select("id,name,price,image,images,category,description,sizes,colors")
-            .eq("status", "Active"),
+            .select("id,name,price,image,images,category,description,sizes,colors,status")
+            .neq("status", "Draft"),
           supabase.from("categories").select("name").eq("status", "Active"),
         ]);
 
