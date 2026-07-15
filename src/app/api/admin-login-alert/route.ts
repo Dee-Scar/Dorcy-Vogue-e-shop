@@ -25,12 +25,12 @@ export async function POST(req: NextRequest) {
       { auth: { persistSession: false, autoRefreshToken: false } }
     );
 
-    let resetLink = `${SITE_URL}/admin/login`;
+    let resetLink = `${SITE_URL}/admin/change-password`;
     try {
       const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
         type: "recovery",
         email: "dorcyben001@gmail.com",
-        options: { redirectTo: `${SITE_URL}/admin/login` },
+        options: { redirectTo: `${SITE_URL}/admin/change-password` },
       });
       if (linkData?.properties?.action_link) {
         resetLink = linkData.properties.action_link;

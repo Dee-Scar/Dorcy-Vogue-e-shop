@@ -15,7 +15,7 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isAdminAuthenticated && pathname !== "/admin/login" && pathname !== "/admin/logged-out") {
+    if (!isAdminAuthenticated && pathname !== "/admin/login" && pathname !== "/admin/logged-out" && pathname !== "/admin/change-password") {
       router.replace("/admin/login");
     }
   }, [isAdminAuthenticated, pathname, router]);
@@ -55,7 +55,7 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   }, [isAdminAuthenticated, adminLogout, router]);
 
   // Show login/logged-out pages without sidebar
-  if (pathname === "/admin/login" || pathname === "/admin/logged-out") {
+  if (pathname === "/admin/login" || pathname === "/admin/logged-out" || pathname === "/admin/change-password") {
     return <>{children}</>;
   }
 
