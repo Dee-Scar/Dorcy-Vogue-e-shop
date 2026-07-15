@@ -75,6 +75,14 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdminAuthenticated(true);
       sessionStorage.setItem(SESSION_KEY, "true");
 
+      // Clear any lingering force-logout flag so a fresh login isn't immediately terminated
+      try {
+        await supabase
+          .from("cms_settings")
+          .update({ force_admin_logout: false })
+          .eq("id", 1);
+      } catch (_) {}
+
       // Send login alert email — fire and forget
       try {
         const loginTime = new Date().toLocaleString("en-NG", {
