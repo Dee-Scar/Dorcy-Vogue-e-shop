@@ -17,26 +17,33 @@ interface OrderRow {
   status: "Awaiting Payment" | "Delivered";
 }
 
-const MOCK_ORDERS: OrderRow[] = [
-  { ref: "DV-2026-0042", date: "Jun 23, 2026", items: 3, total: "₦83,000", status: "Awaiting Payment" },
-  { ref: "DV-2026-0038", date: "Jun 18, 2026", items: 1, total: "₦45,000", status: "Delivered" },
-  { ref: "DV-2026-0031", date: "Jun 10, 2026", items: 2, total: "₦50,000", status: "Delivered" },
-  { ref: "DV-2026-0025", date: "May 28, 2026", items: 4, total: "₦112,500", status: "Delivered" },
-];
-
 function ProfilePageContent() {
-  const { user, login } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
-  // If no user is logged in, default to the Adaeze mockup session
-  const displayName = user?.name || "Adaeze Okafor";
-  const displayEmail = user?.email || "adaeze.okafor@gmail.com";
+  // Redirect if not logged in
+  useEffect(() => {
+    if (user === null) {
+      router.replace("/login");
+    }
+  }, [user, router]);
 
-  // Tab state: "orders" | "profile" | "settings"
+  // Show spinner while auth is resolving or redirecting
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] pt-[80px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#B78A62]" />
+      </div>
+    );
+  }
+
+  const displayName = user?.name || "";
+  const displayEmail = user?.email || "";
+
   const [activeTab, setActiveTab] = useState<"orders" | "profile" | "settings">("orders");
 
   // Dynamic Orders State
-  const [orders, setOrders] = useState<OrderRow[]>(MOCK_ORDERS);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
 
   useEffect(() => {
