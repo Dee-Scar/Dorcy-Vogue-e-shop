@@ -20,16 +20,27 @@ function ChangePasswordContent() {
 
   // Supabase sends the recovery token in the URL hash — wait for it to be consumed
   useEffect(() => {
-    // onAuthStateChange fires with event PASSWORD_RECOVERY when the reset link is clicked
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+    // Check immediately if there's a session already (e.g. token already exchanged)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSessionReady(true);
+        return;
+      }
+
+      // If URL has a hash with access_token, Supabase will exchange it automatically
+      // onAuthStateChange fires with PASSWORD_RECOVERY or SIGNED_IN once done
+      const hash = window.location.hash;
+      if (!hash.includes("access_token") && !hash.includes("type=recovery")) {
+        // No token in URL and no session — just enable form anyway so
+        // the user can attempt (Supabase will error if no valid session)
         setSessionReady(true);
       }
     });
 
-    // Also check if already in a valid session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+        if (session) setSessionReady(true);
+      }
     });
 
     return () => subscription.unsubscribe();
