@@ -66,7 +66,7 @@ export default function AdminDashboardPage() {
         // Fetch all orders
         const { data: orders, error } = await supabase
           .from("orders")
-          .select("id, status, total_amount, created_at, full_name, email, phone")
+          .select("id, status, payment_status, total_amount, created_at, full_name, email, phone")
           .order("created_at", { ascending: false });
 
         if (error) {
@@ -76,10 +76,17 @@ export default function AdminDashboardPage() {
 
         const allOrders = orders || [];
 
-        // Calculate stats
-        const totalRevenue = allOrders.reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
+        // Total Revenue = only confirmed payments, not pending
+        const totalRevenue = allOrders
+          .filter(o => o.payment_status === "Confirmed")
+          .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
+
         const totalCount = allOrders.length;
-        const pendingCount = allOrders.filter(o => o.status === "Pending Payment").length;
+        const pendingOrders = allOrders.filter(o =>
+          o.status === "Pending Payment" || o.status === "Awaiting Verification"
+        );
+        const pendingCount = pendingOrders.length;
+        const pendingTotal = pendingOrders.reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
         const awaitingCount = allOrders.filter(o => o.status === "Awaiting Verification").length;
         const deliveredCount = allOrders.filter(o => o.status === "Delivered").length;
 
@@ -104,7 +111,7 @@ export default function AdminDashboardPage() {
           },
           {
             label: "Pending Orders",
-            value: String(pendingCount),
+            value: `${pendingCount} · ₦${pendingTotal.toLocaleString()}`,
             icon: Clock,
             color: "text-yellow-500",
             bg: "bg-yellow-50",
