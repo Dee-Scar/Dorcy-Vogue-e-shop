@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 
@@ -18,9 +19,14 @@ export async function POST(req: NextRequest) {
 
     const resend = new Resend(RESEND_API_KEY);
 
-    // Use Supabase's built-in password reset email — handles token exchange automatically
+    // Use Supabase admin client to send password reset email
     let resetLink = `${SITE_URL}/admin/change-password`;
     try {
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { persistSession: false, autoRefreshToken: false } }
+      );
       await supabaseAdmin.auth.resetPasswordForEmail("dorcyben001@gmail.com", {
         redirectTo: `${SITE_URL}/admin/change-password`,
       });
