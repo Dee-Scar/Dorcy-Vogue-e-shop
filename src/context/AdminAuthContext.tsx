@@ -74,6 +74,25 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     if (data.user?.email === ADMIN_EMAIL) {
       setIsAdminAuthenticated(true);
       sessionStorage.setItem(SESSION_KEY, "true");
+
+      // Send login alert email — fire and forget
+      try {
+        const loginTime = new Date().toLocaleString("en-NG", {
+          timeZone: "Africa/Lagos",
+          dateStyle: "medium",
+          timeStyle: "short",
+        }) + " (WAT)";
+
+        fetch("/api/admin-login-alert", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            loginTime,
+            userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "Unknown",
+          }),
+        }).catch(() => {});
+      } catch (_) {}
+
       return true;
     }
     return false;
