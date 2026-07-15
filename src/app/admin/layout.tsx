@@ -21,8 +21,9 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   }, [isAdminAuthenticated, pathname, router]);
 
   // Poll every 5 seconds for force-logout flag set by the email button
+  // Skip on change-password page so the reset session isn't killed mid-update
   useEffect(() => {
-    if (!isAdminAuthenticated) return;
+    if (!isAdminAuthenticated || pathname === "/admin/change-password") return;
 
     const checkForceLogout = async () => {
       try {
