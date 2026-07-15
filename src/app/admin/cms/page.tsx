@@ -38,6 +38,8 @@ export default function CMSPage() {
     email: "",
     whatsapp: "",
     address: "",
+    instagramUrl: "",
+    tiktokUrl: "",
   });
   const [faqSections, setFaqSections] = useState<FAQSection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,6 +143,8 @@ export default function CMSPage() {
             email: data.contact_email || "",
             whatsapp: data.contact_whatsapp || "",
             address: data.contact_address || "",
+            instagramUrl: data.contact_instagram || "",
+            tiktokUrl: data.contact_tiktok || "",
           });
           setFaqSections(data.faq_sections || []);
         }
@@ -167,6 +171,8 @@ export default function CMSPage() {
           contact_email: contactInfo.email,
           contact_whatsapp: contactInfo.whatsapp,
           contact_address: contactInfo.address,
+          contact_instagram: contactInfo.instagramUrl,
+          contact_tiktok: contactInfo.tiktokUrl,
           faq_sections: faqSections,
           updated_at: new Date().toISOString(),
         })
@@ -498,11 +504,15 @@ export default function CMSPage() {
                     const newEmail = prompt("Enter Email:", contactInfo.email);
                     const newWhatsapp = prompt("Enter WhatsApp:", contactInfo.whatsapp);
                     const newAddress = prompt("Enter Address:", contactInfo.address);
+                    const newInstagram = prompt("Enter Instagram URL:", contactInfo.instagramUrl);
+                    const newTiktok = prompt("Enter TikTok URL:", contactInfo.tiktokUrl);
                     setContactInfo({
                       phone: newPhone !== null ? newPhone : contactInfo.phone,
                       email: newEmail !== null ? newEmail : contactInfo.email,
                       whatsapp: newWhatsapp !== null ? newWhatsapp : contactInfo.whatsapp,
                       address: newAddress !== null ? newAddress : contactInfo.address,
+                      instagramUrl: newInstagram !== null ? newInstagram : contactInfo.instagramUrl,
+                      tiktokUrl: newTiktok !== null ? newTiktok : contactInfo.tiktokUrl,
                     });
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#C9956A]/20 hover:border-[#C9956A]/40 text-[#C9956A] text-xs font-bold font-sans rounded-lg transition-colors cursor-pointer"
@@ -539,6 +549,20 @@ export default function CMSPage() {
                   <div>
                     <p className="text-xs text-[#8C8682] font-semibold uppercase tracking-wider">Address</p>
                     <p className="text-[#1C1512] font-semibold mt-0.5 leading-snug">{contactInfo.address}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Globe className="w-4 h-4 text-[#8C8682] mt-0.5" />
+                  <div>
+                    <p className="text-xs text-[#8C8682] font-semibold uppercase tracking-wider">Instagram</p>
+                    <p className="text-[#1C1512] font-semibold mt-0.5 truncate max-w-[200px]">{contactInfo.instagramUrl || "—"}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Globe className="w-4 h-4 text-[#8C8682] mt-0.5" />
+                  <div>
+                    <p className="text-xs text-[#8C8682] font-semibold uppercase tracking-wider">TikTok</p>
+                    <p className="text-[#1C1512] font-semibold mt-0.5 truncate max-w-[200px]">{contactInfo.tiktokUrl || "—"}</p>
                   </div>
                 </div>
               </div>
