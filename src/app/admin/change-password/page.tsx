@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck } from "lucide-react";
 
 function ChangePasswordContent() {
@@ -30,8 +29,13 @@ function ChangePasswordContent() {
 
     setSaving(true);
     try {
-      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
-      if (updateError) throw updateError;
+      const res = await fetch("/api/admin-reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: newPassword, secret: "dv-reset-2026" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update password.");
       setSuccess(true);
       setTimeout(() => router.replace("/admin/login"), 3000);
     } catch (err: any) {
