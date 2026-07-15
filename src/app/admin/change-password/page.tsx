@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck } from "lucide-react";
+import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 
 function ChangePasswordContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -16,34 +15,41 @@ function ChangePasswordContent() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [sessionReady, setSessionReady] = useState(false);
 
-  // Supabase sends the recovery token in the URL hash — wait for it to be consumed
+  // Status: "loading" | "ready" | "expired"
+  const [status, setStatus] = useState<"loading" | "ready" | "expired">("loading");
+
   useEffect(() => {
-    // Check immediately if there's a session already (e.g. token already exchanged)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setSessionReady(true);
-        return;
-      }
-
-      // If URL has a hash with access_token, Supabase will exchange it automatically
-      // onAuthStateChange fires with PASSWORD_RECOVERY or SIGNED_IN once done
-      const hash = window.location.hash;
-      if (!hash.includes("access_token") && !hash.includes("type=recovery")) {
-        // No token in URL and no session — just enable form anyway so
-        // the user can attempt (Supabase will error if no valid session)
-        setSessionReady(true);
-      }
-    });
-
+    // Register the listener FIRST before any async operations
+    // so we don't miss the PASSWORD_RECOVERY event
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-        if (session) setSessionReady(true);
+      if (event === "PASSWORD_RECOVERY" && session) {
+        setStatus("ready");
+      } else if (event === "SIGNED_IN" && session) {
+        // Also handle SIGNED_IN which fires after token exchange
+        setStatus("ready");
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Then check if there's already a valid session (page reload after token exchange)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setStatus("ready");
+      }
+    });
+
+    // Timeout — if no event fires in 10s, the link is invalid/expired
+    const timeout = setTimeout(() => {
+      setStatus((prev) => {
+        if (prev === "loading") return "expired";
+        return prev;
+      });
+    }, 10000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,7 +70,6 @@ function ChangePasswordContent() {
       const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
       if (updateError) throw updateError;
       setSuccess(true);
-      // Redirect to admin login after 3 seconds
       setTimeout(() => router.replace("/admin/login"), 3000);
     } catch (err: any) {
       setError(err.message || "Failed to update password. Please try again.");
@@ -92,20 +97,44 @@ function ChangePasswordContent() {
           </div>
         </div>
 
-        {success ? (
-          /* Success state */
+        {/* Success */}
+        {success && (
           <div className="text-center space-y-4">
             <div className="flex justify-center">
               <div className="p-3 bg-green-50 rounded-full border border-green-100">
                 <Check className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            <div>
-              <p className="font-sans text-sm font-semibold text-green-700">Password updated successfully!</p>
-              <p className="font-sans text-xs text-[#8C8682] mt-1">Redirecting to admin login...</p>
-            </div>
+            <p className="font-sans text-sm font-semibold text-green-700">Password updated successfully!</p>
+            <p className="font-sans text-xs text-[#8C8682]">Redirecting to admin login...</p>
           </div>
-        ) : (
+        )}
+
+        {/* Expired */}
+        {!success && status === "expired" && (
+          <div className="text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="p-3 bg-red-50 rounded-full border border-red-100">
+                <AlertCircle className="h-8 w-8 text-red-500" />
+              </div>
+            </div>
+            <p className="font-sans text-sm font-semibold text-red-600">Reset link expired or invalid.</p>
+            <p className="font-sans text-xs text-[#8C8682] leading-relaxed">
+              This link has expired. Please log into the admin panel and use the login alert email to generate a new reset link.
+            </p>
+          </div>
+        )}
+
+        {/* Loading */}
+        {!success && status === "loading" && (
+          <div className="text-center space-y-3 py-4">
+            <Loader2 className="h-8 w-8 animate-spin text-[#C9956A] mx-auto" />
+            <p className="font-sans text-sm text-[#8C8682]">Verifying reset link...</p>
+          </div>
+        )}
+
+        {/* Form */}
+        {!success && status === "ready" && (
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* New Password */}
             <div className="space-y-1.5">
@@ -122,11 +151,7 @@ function ChangePasswordContent() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-3 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-xl text-base font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowNew(!showNew)}
-                  className="absolute right-3.5 top-3.5 text-[#8C8682] hover:text-[#1C1512] cursor-pointer"
-                >
+                <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3.5 top-3.5 text-[#8C8682] hover:text-[#1C1512] cursor-pointer">
                   {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -147,43 +172,25 @@ function ChangePasswordContent() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-3 bg-[#FAF7F2] border border-[#1C1512]/10 rounded-xl text-base font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3.5 top-3.5 text-[#8C8682] hover:text-[#1C1512] cursor-pointer"
-                >
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3.5 top-3.5 text-[#8C8682] hover:text-[#1C1512] cursor-pointer">
                   {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Error */}
             {error && (
               <p className="text-xs font-semibold text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
 
-            {/* Submit */}
             <button
               type="submit"
-              disabled={saving || !sessionReady}
+              disabled={saving}
               className="w-full py-3.5 bg-[#C9956A] hover:bg-[#A87A52] text-white font-sans text-sm font-semibold rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {saving ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /><span>Updating...</span></>
-              ) : !sessionReady ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /><span>Verifying link...</span></>
-              ) : (
-                "Update Password"
-              )}
+              {saving ? <><Loader2 className="h-4 w-4 animate-spin" /><span>Updating...</span></> : "Update Password"}
             </button>
-
-            {!sessionReady && (
-              <p className="text-xs text-[#8C8682] text-center font-sans">
-                Waiting for the reset link to be verified...
-              </p>
-            )}
           </form>
         )}
       </div>
