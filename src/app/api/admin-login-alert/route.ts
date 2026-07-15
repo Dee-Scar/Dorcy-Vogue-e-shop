@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "dorcyvogue@gmail.com";
