@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { createClient } from "@supabase/supabase-js";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "dorcyvogue@gmail.com";
 const FROM_EMAIL = "Dorcy Vogue <notifications@dorcyvogue.com>";
@@ -16,6 +17,25 @@ export async function POST(req: NextRequest) {
     const { userAgent, loginTime, ipHint } = body;
 
     const resend = new Resend(RESEND_API_KEY);
+
+    // Generate a real password reset link for the admin account
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false, autoRefreshToken: false } }
+    );
+
+    let resetLink = `${SITE_URL}/admin/login`;
+    try {
+      const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+        type: "recovery",
+        email: "dorcyben001@gmail.com",
+        options: { redirectTo: `${SITE_URL}/admin/login` },
+      });
+      if (linkData?.properties?.action_link) {
+        resetLink = linkData.properties.action_link;
+      }
+    } catch (_) {}
 
     const forceLogoutUrl = `${SITE_URL}/api/admin-force-logout`;
     const resetPasswordUrl = `${SITE_URL}/admin/login`;
@@ -77,13 +97,13 @@ export async function POST(req: NextRequest) {
                     </a>
                   </div>
                   <div style="text-align:center;margin-bottom:24px;">
-                    <a href="${resetPasswordUrl}" style="display:inline-block;padding:14px 28px;background:#1C1512;color:#fff;font-size:13px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.5px;">
-                      🔑 Go to Admin Login
+                    <a href="${resetLink}" style="display:inline-block;padding:14px 28px;background:#1C1512;color:#fff;font-size:13px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.5px;">
+                      🔑 Reset My Password
                     </a>
                   </div>
 
                   <p style="margin:0;font-size:11px;color:#8C8682;line-height:1.6;text-align:center;">
-                    After forcing sign out, immediately change your admin password via Supabase.
+                    Click <strong>Force Sign Out</strong> first to kick the unauthorized user out immediately, then reset your password.
                   </p>
                 </td>
               </tr>

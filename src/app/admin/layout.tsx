@@ -5,20 +5,57 @@ import { useRouter, usePathname } from "next/navigation";
 import { AdminAuthProvider, useAdminAuth } from "@/context/AdminAuthContext";
 import { AdminLayoutProvider, useAdminLayout } from "@/context/AdminLayoutContext";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { supabase } from "@/lib/supabase";
+
+const SESSION_KEY = "dv_admin_auth";
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
-  const { isAdminAuthenticated } = useAdminAuth();
+  const { isAdminAuthenticated, adminLogout } = useAdminAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isAdminAuthenticated && pathname !== "/admin/login") {
+    if (!isAdminAuthenticated && pathname !== "/admin/login" && pathname !== "/admin/logged-out") {
       router.replace("/admin/login");
     }
   }, [isAdminAuthenticated, pathname, router]);
 
-  // Show login page without sidebar
-  if (pathname === "/admin/login") {
+  // Poll every 5 seconds for force-logout flag set by the email button
+  useEffect(() => {
+    if (!isAdminAuthenticated) return;
+
+    const checkForceLogout = async () => {
+      try {
+        const { data } = await supabase
+          .from("cms_settings")
+          .select("force_admin_logout, force_logout_at")
+          .eq("id", 1)
+          .single();
+
+        if (data?.force_admin_logout) {
+          // Clear local session immediately
+          await supabase.auth.signOut();
+          sessionStorage.removeItem(SESSION_KEY);
+          await adminLogout();
+
+          // Clear the flag in DB so next legitimate login isn't affected
+          await supabase
+            .from("cms_settings")
+            .update({ force_admin_logout: false })
+            .eq("id", 1);
+
+          router.replace("/admin/logged-out");
+        }
+      } catch (_) {}
+    };
+
+    checkForceLogout();
+    const interval = setInterval(checkForceLogout, 5000);
+    return () => clearInterval(interval);
+  }, [isAdminAuthenticated, adminLogout, router]);
+
+  // Show login/logged-out pages without sidebar
+  if (pathname === "/admin/login" || pathname === "/admin/logged-out") {
     return <>{children}</>;
   }
 
