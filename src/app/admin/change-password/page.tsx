@@ -3,11 +3,10 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, AlertCircle } from "lucide-react";
+import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck } from "lucide-react";
 
 function ChangePasswordContent() {
   const router = useRouter();
-
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNew, setShowNew] = useState(false);
@@ -15,59 +14,6 @@ function ChangePasswordContent() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [status, setStatus] = useState<"loading" | "ready" | "expired">("loading");
-
-  useEffect(() => {
-    async function exchangeToken() {
-      // Supabase puts the token in the URL hash as:
-      // #access_token=xxx&refresh_token=xxx&type=recovery
-      const hash = window.location.hash;
-
-      if (hash && hash.includes("access_token")) {
-        // Parse the hash manually and set the session directly
-        const params = new URLSearchParams(hash.replace("#", ""));
-        const accessToken = params.get("access_token");
-        const refreshToken = params.get("refresh_token");
-
-        if (accessToken && refreshToken) {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (sessionError) {
-            console.error("Session error:", sessionError.message);
-            setStatus("expired");
-          } else {
-            setStatus("ready");
-            // Clean the hash from the URL without reloading
-            window.history.replaceState(null, "", window.location.pathname);
-          }
-          return;
-        }
-      }
-
-      // No hash — check if there's already a valid session (e.g. after page reload)
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setStatus("ready");
-        return;
-      }
-
-      // No session and no token — wait briefly for onAuthStateChange
-      const timeout = setTimeout(() => setStatus("expired"), 8000);
-
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if ((event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") && session) {
-          setStatus("ready");
-          clearTimeout(timeout);
-          subscription.unsubscribe();
-        }
-      });
-    }
-
-    exchangeToken();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,7 +45,6 @@ function ChangePasswordContent() {
     <div className="min-h-screen flex items-center justify-center bg-[#1C1007] p-6">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-10 space-y-8">
 
-        {/* Header */}
         <div className="text-center space-y-3">
           <div className="flex justify-center">
             <div className="p-4 bg-[#FAF7F2] rounded-full border border-[#C9956A]/20">
@@ -112,8 +57,7 @@ function ChangePasswordContent() {
           </div>
         </div>
 
-        {/* Success */}
-        {success && (
+        {success ? (
           <div className="text-center space-y-4">
             <div className="flex justify-center">
               <div className="p-3 bg-green-50 rounded-full border border-green-100">
@@ -123,33 +67,7 @@ function ChangePasswordContent() {
             <p className="font-sans text-sm font-semibold text-green-700">Password updated successfully!</p>
             <p className="font-sans text-xs text-[#8C8682]">Redirecting to admin login...</p>
           </div>
-        )}
-
-        {/* Expired */}
-        {!success && status === "expired" && (
-          <div className="text-center space-y-4">
-            <div className="flex justify-center">
-              <div className="p-3 bg-red-50 rounded-full border border-red-100">
-                <AlertCircle className="h-8 w-8 text-red-500" />
-              </div>
-            </div>
-            <p className="font-sans text-sm font-semibold text-red-600">Reset link expired or invalid.</p>
-            <p className="font-sans text-xs text-[#8C8682] leading-relaxed">
-              This link has expired. Please use the login alert email to generate a new reset link.
-            </p>
-          </div>
-        )}
-
-        {/* Loading */}
-        {!success && status === "loading" && (
-          <div className="text-center space-y-3 py-4">
-            <Loader2 className="h-8 w-8 animate-spin text-[#C9956A] mx-auto" />
-            <p className="font-sans text-sm text-[#8C8682]">Verifying reset link...</p>
-          </div>
-        )}
-
-        {/* Form */}
-        {!success && status === "ready" && (
+        ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <label className="block font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">New Password</label>

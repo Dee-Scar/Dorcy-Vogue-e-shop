@@ -18,23 +18,12 @@ export async function POST(req: NextRequest) {
 
     const resend = new Resend(RESEND_API_KEY);
 
-    // Generate a real password reset link for the admin account
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } }
-    );
-
+    // Use Supabase's built-in password reset email — handles token exchange automatically
     let resetLink = `${SITE_URL}/admin/change-password`;
     try {
-      const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
-        type: "recovery",
-        email: "dorcyben001@gmail.com",
-        options: { redirectTo: `${SITE_URL}/admin/change-password` },
+      await supabaseAdmin.auth.resetPasswordForEmail("dorcyben001@gmail.com", {
+        redirectTo: `${SITE_URL}/admin/change-password`,
       });
-      if (linkData?.properties?.action_link) {
-        resetLink = linkData.properties.action_link;
-      }
     } catch (_) {}
 
     const forceLogoutUrl = `${SITE_URL}/api/admin-force-logout`;
