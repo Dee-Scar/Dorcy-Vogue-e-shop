@@ -71,7 +71,8 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: "/dorcyvogue logo.png",
+    apple: "/dorcyvogue logo.png",
   },
   verification: {
     google: "Ga8C1wpY9MBbRCxGTNRXeFIvp92W7BjGLmk12R3Zj8s",
