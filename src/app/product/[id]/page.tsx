@@ -98,6 +98,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             details: data.details || [],
             videoUrl: data.video_url || undefined,
             status: data.status || "Active",
+            comparePrice: data.compare_price ? Number(data.compare_price) : undefined,
           };
           setProduct(formatted);
         }
@@ -356,9 +357,21 @@ export default function ProductPage({ params }: ProductPageProps) {
               <h1 className="font-serif text-3xl md:text-4xl font-bold text-[#1C1512] tracking-wide leading-tight">
                 {product.name}
               </h1>
-              <p className="font-sans text-2xl font-extrabold text-[#B78A62]">
-                {product.formattedPrice}
-              </p>
+              <div className="flex items-center gap-3 flex-wrap">
+                <p className="font-sans text-2xl font-extrabold text-[#B78A62]">
+                  {product.formattedPrice}
+                </p>
+                {product.comparePrice && product.comparePrice > product.price && (
+                  <>
+                    <p className="font-sans text-lg text-[#8C8682] line-through">
+                      ₦{product.comparePrice.toLocaleString()}
+                    </p>
+                    <span className="font-sans text-xs font-bold text-white bg-red-500 px-2 py-1 rounded-full">
+                      {Math.round((1 - product.price / product.comparePrice) * 100)}% OFF
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Description */}

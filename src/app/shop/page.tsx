@@ -30,6 +30,7 @@ async function getInitialProducts(): Promise<Product[]> {
       colors: p.colors || [],
       details: [],
       status: p.status || "Active",
+      comparePrice: p.compare_price ? Number(p.compare_price) : undefined,
     }));
   } catch {
     return [];

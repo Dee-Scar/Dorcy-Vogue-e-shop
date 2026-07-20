@@ -73,6 +73,7 @@ function ProductForm() {
             setCategory(data.category || "");
             setStock(data.stock?.toString() || "");
             setStatus(data.status || "Active");
+            setComparePrice(data.compare_price?.toString() || "");
             setSelectedSizes(data.sizes || []);
             setSelectedColors(data.colors || []);
             setImages(data.images || [data.image].filter(Boolean));
@@ -219,6 +220,7 @@ function ProductForm() {
         name,
         description,
         price: Number(price) || 0,
+        compare_price: comparePrice ? Number(comparePrice) : null,
         category,
         stock: Number(stock) || 0,
         status: effectiveStatus,

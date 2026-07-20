@@ -14,7 +14,7 @@ export async function GET() {
 
     const { data, error } = await supabaseAdmin
       .from("products")
-      .select("id,name,price,image,images,category,description,sizes,colors,status,stock")
+      .select("id,name,price,compare_price,image,images,category,description,sizes,colors,status,stock")
       .neq("status", "Draft")
       .order("created_at", { ascending: false });
 

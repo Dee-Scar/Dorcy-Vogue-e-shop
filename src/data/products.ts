@@ -3,6 +3,7 @@ export interface Product {
   name: string;
   price: number;
   formattedPrice: string;
+  comparePrice?: number;
   image: string;
   images: string[];
   category: string;

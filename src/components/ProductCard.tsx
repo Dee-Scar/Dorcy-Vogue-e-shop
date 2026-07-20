@@ -13,6 +13,7 @@ export interface Product {
   name: string;
   price: number;
   formattedPrice: string;
+  comparePrice?: number;
   image: string;
   images: string[];
   category: string;
@@ -104,9 +105,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
         <h3 className="font-serif text-lg text-[#1C1512] font-semibold tracking-wide hover:text-[#B78A62] transition-colors cursor-pointer mb-1 line-clamp-1">
           {product.name}
         </h3>
-        <p className="font-sans text-base font-bold text-[#B78A62] mb-4">
-          {product.formattedPrice}
-        </p>
+
+        {/* Price — show sale price if comparePrice set */}
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <p className="font-sans text-base font-bold text-[#B78A62]">
+            {product.formattedPrice}
+          </p>
+          {product.comparePrice && product.comparePrice > product.price && (
+            <>
+              <p className="font-sans text-sm text-[#8C8682] line-through">
+                ₦{product.comparePrice.toLocaleString()}
+              </p>
+              <span className="font-sans text-[10px] font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-full">
+                SALE
+              </span>
+            </>
+          )}
+        </div>
 
         {/* Add To Cart / Out of Stock Button */}
         <button

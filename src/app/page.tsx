@@ -56,6 +56,7 @@ export default function Home() {
           colors: (p.colors as string[]) || [],
           details: [],
           status: (p.status as string) || "Active",
+          comparePrice: (p.compare_price as number) ? Number(p.compare_price) : undefined,
         }));
         setProducts(mapped);
       }
