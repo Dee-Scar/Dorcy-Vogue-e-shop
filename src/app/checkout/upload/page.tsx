@@ -397,25 +397,41 @@ function UploadPageContent() {
                   Thank you. Your payment is <span className="font-semibold text-[#1C1512]">not confirmed yet</span> — our team will verify your receipt and mark your order as <span className="font-semibold text-[#1C1512]">Payment Confirmed</span>. You can follow the status any time under Track My Order.
                 </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                <button
-                  onClick={() => {
-                    router.push(`/track?ref=${refParam}`);
-                  }}
-                  className="w-full py-3 bg-[#B78A62] hover:bg-[#9E734D] text-white font-sans text-xs sm:text-sm font-semibold rounded-xl shadow transition-all duration-300 flex items-center justify-center space-x-1 cursor-pointer"
+              <div className="grid grid-cols-1 gap-3 w-full">
+                {/* WhatsApp Notify Vendor Button */}
+                <a
+                  href={`https://wa.me/2349071262856?text=${encodeURIComponent(
+                    `🛍️ *NEW ORDER — Payment Receipt Uploaded*\n\n` +
+                    `📦 Order Ref: *${refParam}*\n` +
+                    `💰 Amount: *${formattedAmount}*\n\n` +
+                    `A customer has uploaded their payment receipt and is awaiting verification.\n\n` +
+                    `Please confirm payment on the admin dashboard:\nhttps://dorcyvogue.com/admin/orders/${refParam}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 bg-[#25D366] hover:bg-[#20ba5a] text-white font-sans text-xs sm:text-sm font-semibold rounded-xl shadow transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>Track My Order</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
+                  <svg className="h-4 w-4 fill-current flex-shrink-0" viewBox="0 0 24 24">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.97C16.379 2.28 13.919 1.277 12.007 1.277c-5.435 0-9.85 4.372-9.855 9.803-.002 1.761.477 3.478 1.39 4.996l-.992 3.613 3.73-.967zm12.355-6.425c-.328-.163-1.94-.945-2.24-1.053-.298-.11-.517-.163-.73.163-.215.328-.834 1.054-1.02 1.267-.188.214-.377.24-.705.077-.328-.163-1.385-.505-2.637-1.611-.973-.858-1.63-1.918-1.82-2.247-.19-.328-.02-.505.143-.668.147-.146.328-.377.49-.567.164-.188.218-.328.328-.546.11-.218.055-.41-.027-.573-.082-.164-.73-1.748-1.002-2.395-.26-.63-.53-.54-.73-.55-.187-.01-.403-.01-.618-.01-.215 0-.566.08-.863.407-.297.327-1.135 1.09-1.135 2.66 0 1.571 1.153 3.09 1.312 3.298.158.21 2.27 3.43 5.5 4.805.768.327 1.368.522 1.833.668.772.242 1.475.208 2.03.125.619-.092 1.94-.784 2.215-1.543.275-.76.275-1.41.19-1.543-.084-.13-.298-.21-.627-.375z"/>
+                  </svg>
+                  <span>Notify Vendor on WhatsApp</span>
+                </a>
 
-                <button
-                  onClick={() => {
-                    router.push("/");
-                  }}
-                  className="w-full py-3 bg-white border border-[#1C1512]/10 hover:border-[#1C1512]/30 text-[#1C1512] font-sans text-xs sm:text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all duration-300 flex items-center justify-center cursor-pointer"
-                >
-                  Return to Home
-                </button>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => router.push(`/track?ref=${refParam}`)}
+                    className="w-full py-3 bg-[#B78A62] hover:bg-[#9E734D] text-white font-sans text-xs sm:text-sm font-semibold rounded-xl shadow transition-all duration-300 flex items-center justify-center space-x-1 cursor-pointer"
+                  >
+                    <span>Track Order</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => router.push("/")}
+                    className="w-full py-3 bg-white border border-[#1C1512]/10 hover:border-[#1C1512]/30 text-[#1C1512] font-sans text-xs sm:text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all duration-300 flex items-center justify-center cursor-pointer"
+                  >
+                    Return Home
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
