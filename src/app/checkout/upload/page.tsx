@@ -123,12 +123,18 @@ function UploadPageContent() {
   }, [refParam]);
 
   const handleNotifyWhatsApp = () => {
+    const now = new Date().toLocaleString("en-NG", {
+      timeZone: "Africa/Lagos",
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
     const message = encodeURIComponent(
       `🛍️ *New Order Payment Uploaded*\n\n` +
       `📦 Order ID: ${refParam}\n` +
-      `� Customer: ${orderDetails.customerName || "—"}\n` +
+      `👤 Customer: ${orderDetails.customerName || "—"}\n` +
       `📍 Delivery Address: ${orderDetails.address || "—"}${orderDetails.state ? `, ${orderDetails.state}` : ""}\n` +
-      `�💰 Amount: ${formattedAmount}\n\n` +
+      ` Amount: ${formattedAmount}\n` +
+      `🕐 Date & Time: ${now} (WAT)\n\n` +
       `I have uploaded my payment receipt for the above order. Kindly confirm my payment at your earliest convenience.\n\n` +
       `Thank you! 🙏`
     );

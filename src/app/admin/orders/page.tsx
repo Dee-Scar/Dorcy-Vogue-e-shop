@@ -96,32 +96,60 @@ export default function OrdersPage() {
 
   const handleExport = () => {
     const exportOrders = filtered.length > 0 ? filtered : allOrders;
+    const exportDate = new Date().toLocaleDateString("en-NG", { dateStyle: "medium" });
 
-    const headers = ["Order ID", "Customer Name", "Email", "Phone", "Delivery Address", "State", "Items Ordered", "Amount", "Status", "Date"];
-    const rows = exportOrders.map((o: any) => [
-      o.id,
-      o.customer,
-      o.email,
-      o.phone,
-      o.address,
-      o.state,
-      o.items || "—",
-      o.amount,
-      o.status,
-      o.date,
-    ]);
+    const rows = exportOrders.map((o: any, idx: number) => `
+      <tr style="background:${idx % 2 === 0 ? "#fff" : "#faf7f2"}">
+        <td>${o.id}</td>
+        <td>${o.customer}</td>
+        <td>${o.email}</td>
+        <td>${o.phone}</td>
+        <td>${o.address}, ${o.state}</td>
+        <td style="max-width:200px;word-break:break-word">${(o as any).items || "—"}</td>
+        <td style="font-weight:700;color:#b78a62">${o.amount}</td>
+        <td><span style="padding:2px 8px;border-radius:20px;font-size:11px;background:#f0fdf4;color:#16a34a">${o.status}</span></td>
+        <td>${o.date}</td>
+      </tr>`).join("");
 
-    const csvContent = [headers, ...rows]
-      .map((row) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+      <title>Dorcy Vogue — Orders Export</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 11px; color: #1c1512; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #b78a62; padding-bottom: 12px; }
+        .header h1 { font-size: 20px; color: #1c1512; }
+        .header p { font-size: 11px; color: #8c8682; }
+        .badge { background: #b78a62; color: white; padding: 3px 10px; border-radius: 20px; font-size: 11px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th { background: #1c1512; color: white; padding: 8px 10px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 7px 10px; border-bottom: 1px solid #f0ece6; vertical-align: top; }
+        .footer { margin-top: 20px; text-align: center; font-size: 10px; color: #8c8682; border-top: 1px solid #f0ece6; padding-top: 10px; }
+        @media print { body { padding: 0; } }
+      </style></head><body>
+      <div class="header">
+        <div>
+          <h1>DORCY VOGUE</h1>
+          <p>Orders Report — Exported on ${exportDate}</p>
+        </div>
+        <span class="badge">${exportOrders.length} Orders</span>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Order ID</th><th>Customer</th><th>Email</th><th>Phone</th>
+          <th>Delivery Address</th><th>Items Ordered</th><th>Amount</th><th>Status</th><th>Date</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="footer">Dorcy Vogue — Premium Nigerian Fashion &nbsp;|&nbsp; dorcyvogue.com</div>
+      </body></html>`;
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `dorcy-vogue-orders-${new Date().toISOString().split("T")[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const win = window.open("", "_blank");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      setTimeout(() => { win.print(); }, 500);
+    }
   };
 
   const filtered = allOrders.filter((order) => {
