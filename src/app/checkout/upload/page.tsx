@@ -122,21 +122,39 @@ function UploadPageContent() {
     loadOrderDetails();
   }, [refParam]);
 
-  const handleNotifyWhatsApp = () => {
+  const handleNotifyWhatsApp = async () => {
+    let name = orderDetails.customerName;
+    let addr = orderDetails.address;
+    let st = orderDetails.state;
+
+    // Re-fetch right when clicked to guarantee fresh data
+    try {
+      const { data } = await supabase
+        .from("orders")
+        .select("full_name, address, state")
+        .eq("id", refParam)
+        .maybeSingle();
+      if (data) {
+        name = data.full_name || name;
+        addr = data.address || addr;
+        st = data.state || st;
+      }
+    } catch (_) {}
+
     const now = new Date().toLocaleString("en-NG", {
       timeZone: "Africa/Lagos",
       dateStyle: "medium",
       timeStyle: "short",
     });
     const message = encodeURIComponent(
-      `🛍️ *New Order Payment Uploaded*\n\n` +
-      `📦 Order ID: ${refParam}\n` +
-      `👤 Customer: ${orderDetails.customerName || "—"}\n` +
-      `📍 Delivery Address: ${orderDetails.address || "—"}${orderDetails.state ? `, ${orderDetails.state}` : ""}\n` +
-      ` Amount: ${formattedAmount}\n` +
-      `🕐 Date & Time: ${now} (WAT)\n\n` +
+      `\uD83D\uDED2 *New Order Payment Uploaded*\n\n` +
+      `\uD83D\uDCE6 Order ID: ${refParam}\n` +
+      `\uD83D\uDC64 Customer: ${name || "\u2014"}\n` +
+      `\uD83D\uDCCD Delivery Address: ${addr || "\u2014"}${st ? `, ${st}` : ""}\n` +
+      `\uD83D\uDCB0 Amount: ${formattedAmount}\n` +
+      `\uD55C\uFE0F Date & Time: ${now} (WAT)\n\n` +
       `I have uploaded my payment receipt for the above order. Kindly confirm my payment at your earliest convenience.\n\n` +
-      `Thank you! 🙏`
+      `Thank you!`
     );
     window.open(`https://wa.me/${vendorWhatsapp}?text=${message}`, "_blank");
   };
