@@ -72,6 +72,7 @@ function UploadPageContent() {
     accountNumber: "0123456789",
   });
   const [vendorWhatsapp, setVendorWhatsapp] = useState("2348012345678");
+  const [orderDetails, setOrderDetails] = useState({ customerName: "", address: "", state: "" });
 
   useEffect(() => {
     const loadBankSettings = async () => {
@@ -88,7 +89,6 @@ function UploadPageContent() {
             accountNumber: data.store_settings.accountNumber || "0123456789",
           });
         }
-        // Load WhatsApp number — prefer contact_whatsapp, fall back to supportPhone
         const rawWa = data?.contact_whatsapp || data?.store_settings?.supportPhone || "";
         const cleanWa = rawWa.replace(/\D/g, "");
         if (cleanWa) {
@@ -98,14 +98,37 @@ function UploadPageContent() {
         console.warn("Failed to load settings", err);
       }
     };
+
+    const loadOrderDetails = async () => {
+      try {
+        const { data } = await supabase
+          .from("orders")
+          .select("full_name, address, state")
+          .eq("id", refParam)
+          .maybeSingle();
+        if (data) {
+          setOrderDetails({
+            customerName: data.full_name || "",
+            address: data.address || "",
+            state: data.state || "",
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to load order details", err);
+      }
+    };
+
     loadBankSettings();
-  }, []);
+    loadOrderDetails();
+  }, [refParam]);
 
   const handleNotifyWhatsApp = () => {
     const message = encodeURIComponent(
       `🛍️ *New Order Payment Uploaded*\n\n` +
       `📦 Order ID: ${refParam}\n` +
-      `💰 Amount: ${formattedAmount}\n\n` +
+      `� Customer: ${orderDetails.customerName || "—"}\n` +
+      `📍 Delivery Address: ${orderDetails.address || "—"}${orderDetails.state ? `, ${orderDetails.state}` : ""}\n` +
+      `�💰 Amount: ${formattedAmount}\n\n` +
       `I have uploaded my payment receipt for the above order. Kindly confirm my payment at your earliest convenience.\n\n` +
       `Thank you! 🙏`
     );

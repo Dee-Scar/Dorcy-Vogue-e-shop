@@ -22,7 +22,10 @@ const statusStyle: Record<string, string> = {
 interface Order {
   id: string;
   customer: string;
+  email: string;
   phone: string;
+  address: string;
+  state: string;
   amount: string;
   status: OrderStatus;
   date: string;
@@ -46,7 +49,7 @@ export default function OrdersPage() {
       try {
         const { data, error } = await supabase
           .from("orders")
-          .select("id, full_name, email, phone, total_amount, status, created_at")
+          .select("id, full_name, email, phone, address, state, total_amount, status, created_at, order_items(product_name, quantity, size, color, price)")
           .order("created_at", { ascending: false });
 
         if (error) throw error;
@@ -54,10 +57,15 @@ export default function OrdersPage() {
         const orders: Order[] = (data || []).map((o: any) => ({
           id: o.id,
           customer: o.full_name || o.email || "Unknown",
+          email: o.email || "—",
           phone: o.phone || "—",
+          address: o.address || "—",
+          state: o.state || "—",
           amount: "₦" + Number(o.total_amount || 0).toLocaleString(),
+          rawAmount: Number(o.total_amount || 0),
+          items: (o.order_items || []).map((i: any) => `${i.product_name} (${i.size}${i.color && i.color !== "Default" ? "/" + i.color : ""} x${i.quantity})`).join("; "),
           status: o.status as OrderStatus,
-          date: new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          date: new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
         }));
 
         setAllOrders(orders);
@@ -86,7 +94,35 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
-  const filtered = allOrders.filter((order) => {
+  const handleExport = () => {
+    const exportOrders = filtered.length > 0 ? filtered : allOrders;
+
+    const headers = ["Order ID", "Customer Name", "Email", "Phone", "Delivery Address", "State", "Items Ordered", "Amount", "Status", "Date"];
+    const rows = exportOrders.map((o: any) => [
+      o.id,
+      o.customer,
+      o.email,
+      o.phone,
+      o.address,
+      o.state,
+      o.items || "—",
+      o.amount,
+      o.status,
+      o.date,
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `dorcy-vogue-orders-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
     const matchesTab = activeTab === null || order.status === activeTab;
     const matchesSearch =
       order.id.toLowerCase().includes(search.toLowerCase()) ||
@@ -118,7 +154,9 @@ export default function OrdersPage() {
             <Filter className="h-4 w-4" />
             <span className="hidden sm:inline">Filter</span>
           </button>
-          <button className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-sans font-medium text-[#1C1512] hover:border-gray-300 transition-colors cursor-pointer">
+          <button
+            onClick={handleExport}
+            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-sans font-medium text-[#1C1512] hover:border-gray-300 transition-colors cursor-pointer">
             <Download className="h-4 w-4" />
             <span className="hidden sm:inline">Export</span>
           </button>
