@@ -123,6 +123,8 @@ export default function OrdersPage() {
     link.click();
     URL.revokeObjectURL(url);
   };
+
+  const filtered = allOrders.filter((order) => {
     const matchesTab = activeTab === null || order.status === activeTab;
     const matchesSearch =
       order.id.toLowerCase().includes(search.toLowerCase()) ||
