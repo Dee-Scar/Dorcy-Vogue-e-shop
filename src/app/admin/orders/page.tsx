@@ -300,8 +300,8 @@ export default function OrdersPage() {
 
       {/* Export Date Range Modal */}
       {showExportModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl border border-gray-100 shadow-xl w-full sm:max-w-sm p-5 space-y-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl w-full max-w-sm p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-base font-bold text-[#1C1512]">Export Orders as PDF</h2>
               <button onClick={() => setShowExportModal(false)} className="p-1.5 text-[#8C8682] hover:text-[#1C1512] rounded-lg cursor-pointer">
@@ -309,13 +309,13 @@ export default function OrdersPage() {
               </button>
             </div>
 
-            <p className="font-sans text-xs text-[#8C8682]">
-              Select a date range to filter orders. Leave blank to export all.
+            <p className="font-sans text-xs text-[#8C8682] leading-relaxed">
+              Select a date range to filter orders before exporting. Leave blank to export all current orders.
             </p>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               <div className="space-y-1.5">
-                <label className="block font-sans text-[10px] font-bold text-[#1C1512] uppercase tracking-wider">From</label>
+                <label className="block font-sans text-[10px] font-bold text-[#1C1512] uppercase tracking-wider">From Date</label>
                 <input
                   type="date"
                   value={exportFrom}
@@ -324,7 +324,7 @@ export default function OrdersPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="block font-sans text-[10px] font-bold text-[#1C1512] uppercase tracking-wider">To</label>
+                <label className="block font-sans text-[10px] font-bold text-[#1C1512] uppercase tracking-wider">To Date</label>
                 <input
                   type="date"
                   value={exportTo}
