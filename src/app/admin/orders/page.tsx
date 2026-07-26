@@ -300,55 +300,47 @@ export default function OrdersPage() {
 
       {/* Export Date Range Modal */}
       {showExportModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-xl w-full max-w-sm p-5 space-y-4 overflow-hidden">
-            <div className="flex items-center justify-between">
-              <h2 className="font-serif text-base font-bold text-[#1C1512]">Export Orders as PDF</h2>
-              <button onClick={() => setShowExportModal(false)} className="p-1.5 text-[#8C8682] hover:text-[#1C1512] rounded-lg cursor-pointer flex-shrink-0">
-                <X className="h-4 w-4" />
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-6">
+          <div style={{ width: "100%", maxWidth: "320px", background: "#fff", borderRadius: "16px", padding: "20px", boxShadow: "0 8px 40px rgba(0,0,0,0.18)", boxSizing: "border-box" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+              <span style={{ fontFamily: "serif", fontSize: "16px", fontWeight: 700, color: "#1C1512" }}>Export Orders as PDF</span>
+              <button onClick={() => setShowExportModal(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#8C8682", padding: "2px", display: "flex" }}>
+                <X style={{ width: 16, height: 16 }} />
               </button>
             </div>
-
-            <p className="font-sans text-xs text-[#8C8682] leading-relaxed">
+            <p style={{ fontFamily: "sans-serif", fontSize: "11px", color: "#8C8682", marginBottom: "16px", lineHeight: 1.5 }}>
               Select a date range to filter orders before exporting. Leave blank to export all current orders.
             </p>
-
-            <div className="space-y-3 w-full">
-              <div className="space-y-1.5">
-                <label className="block font-sans text-[10px] font-bold text-[#1C1512] uppercase tracking-wider">From Date</label>
-                <input
-                  type="date"
-                  value={exportFrom}
-                  onChange={(e) => setExportFrom(e.target.value)}
-                  className="block w-full min-w-0 px-3 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="block font-sans text-[10px] font-bold text-[#1C1512] uppercase tracking-wider">To Date</label>
-                <input
-                  type="date"
-                  value={exportTo}
-                  onChange={(e) => setExportTo(e.target.value)}
-                  className="block w-full min-w-0 px-3 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
-                />
-              </div>
+            <div style={{ marginBottom: "12px" }}>
+              <label style={{ display: "block", fontFamily: "sans-serif", fontSize: "10px", fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "6px" }}>From Date</label>
+              <input
+                type="date"
+                value={exportFrom}
+                onChange={(e) => setExportFrom(e.target.value)}
+                style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "10px 12px", background: "#FAF7F2", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "13px", fontFamily: "sans-serif", color: "#1C1512", outline: "none" }}
+              />
             </div>
-
-            <div className="flex gap-3 pt-1">
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", fontFamily: "sans-serif", fontSize: "10px", fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "6px" }}>To Date</label>
+              <input
+                type="date"
+                value={exportTo}
+                onChange={(e) => setExportTo(e.target.value)}
+                style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "10px 12px", background: "#FAF7F2", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "13px", fontFamily: "sans-serif", color: "#1C1512", outline: "none" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "10px" }}>
               <button
                 onClick={() => setShowExportModal(false)}
-                className="flex-1 min-w-0 py-2.5 bg-white border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-semibold font-sans rounded-xl transition-colors cursor-pointer"
+                style={{ flex: 1, padding: "11px", background: "#fff", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "13px", fontWeight: 600, fontFamily: "sans-serif", color: "#1C1512", cursor: "pointer" }}
               >
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  setShowExportModal(false);
-                  handleExport(exportFrom || undefined, exportTo || undefined);
-                }}
-                className="flex-1 min-w-0 py-2.5 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
+                onClick={() => { setShowExportModal(false); handleExport(exportFrom || undefined, exportTo || undefined); }}
+                style={{ flex: 1, padding: "11px", background: "#C9956A", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: 600, fontFamily: "sans-serif", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
               >
-                <Download className="h-4 w-4 flex-shrink-0" />
+                <Download style={{ width: 14, height: 14, flexShrink: 0 }} />
                 Export PDF
               </button>
             </div>
