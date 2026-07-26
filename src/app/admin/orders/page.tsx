@@ -298,19 +298,100 @@ export default function OrdersPage() {
         </div>
       </main>
 
-      {/* Export Date Range Modal — bottom sheet on mobile */}
+      {/* Export Date Range Modal — bottom sheet mobile, centered on desktop */}
       {showExportModal && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end" style={{ background: "rgba(0,0,0,0.4)" }} onClick={() => setShowExportModal(false)}>
+        <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4" style={{ background: "rgba(0,0,0,0.4)" }} onClick={() => setShowExportModal(false)}>
           <div
             onClick={(e) => e.stopPropagation()}
+            className="w-full sm:max-w-sm sm:rounded-2xl"
             style={{
               background: "#fff",
               borderRadius: "20px 20px 0 0",
-              padding: "24px 20px 32px",
-              width: "100%",
+              padding: "20px 20px 32px",
               boxSizing: "border-box",
             }}
           >
+            {/* Mobile drag handle */}
+            <div className="sm:hidden" style={{ width: 40, height: 4, background: "#e5e0d8", borderRadius: 2, margin: "0 auto 16px" }} />
+
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <span style={{ fontFamily: "serif", fontSize: 16, fontWeight: 700, color: "#1C1512" }}>Export Orders as PDF</span>
+              <button onClick={() => setShowExportModal(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                <X style={{ width: 16, height: 16, color: "#8C8682" }} />
+              </button>
+            </div>
+
+            {/* Description */}
+            <p style={{ fontFamily: "sans-serif", fontSize: 12, color: "#8C8682", marginBottom: 16, lineHeight: 1.5 }}>
+              Select a date range to filter orders before exporting. Leave blank to export all current orders.
+            </p>
+
+            {/* From Date */}
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontFamily: "sans-serif", fontSize: 10, fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                From Date
+              </label>
+              <input
+                type="date"
+                value={exportFrom}
+                onChange={(e) => setExportFrom(e.target.value)}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  padding: "11px 12px",
+                  background: "#FAF7F2",
+                  border: "1px solid #e5e0d8",
+                  borderRadius: 10,
+                  fontSize: 14,
+                  outline: "none",
+                }}
+              />
+            </div>
+
+            {/* To Date */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: "block", fontFamily: "sans-serif", fontSize: 10, fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                To Date
+              </label>
+              <input
+                type="date"
+                value={exportTo}
+                onChange={(e) => setExportTo(e.target.value)}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  padding: "11px 12px",
+                  background: "#FAF7F2",
+                  border: "1px solid #e5e0d8",
+                  borderRadius: 10,
+                  fontSize: 14,
+                  outline: "none",
+                }}
+              />
+            </div>
+
+            {/* Buttons */}
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => setShowExportModal(false)}
+                style={{ flex: 1, padding: "12px 8px", background: "#fff", border: "1px solid #e5e0d8", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "sans-serif", color: "#1C1512", cursor: "pointer" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowExportModal(false); handleExport(exportFrom || undefined, exportTo || undefined); }}
+                style={{ flex: 1, padding: "12px 8px", background: "#C9956A", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "sans-serif", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              >
+                <Download style={{ width: 14, height: 14, flexShrink: 0 }} />
+                Export PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
             {/* Handle bar */}
             <div style={{ width: 40, height: 4, background: "#e5e0d8", borderRadius: 2, margin: "0 auto 20px" }} />
 
