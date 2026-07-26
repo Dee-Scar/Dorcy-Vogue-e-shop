@@ -300,11 +300,11 @@ export default function OrdersPage() {
 
       {/* Export Date Range Modal */}
       {showExportModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-6">
-          <div style={{ width: "100%", maxWidth: "320px", background: "#fff", borderRadius: "16px", padding: "20px", boxShadow: "0 8px 40px rgba(0,0,0,0.18)", boxSizing: "border-box" }}>
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" style={{ padding: "16px" }}>
+          <div style={{ width: "min(320px, calc(100vw - 32px))", background: "#fff", borderRadius: "16px", padding: "20px", boxShadow: "0 8px 40px rgba(0,0,0,0.18)", boxSizing: "border-box", overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
-              <span style={{ fontFamily: "serif", fontSize: "16px", fontWeight: 700, color: "#1C1512" }}>Export Orders as PDF</span>
-              <button onClick={() => setShowExportModal(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#8C8682", padding: "2px", display: "flex" }}>
+              <span style={{ fontFamily: "serif", fontSize: "15px", fontWeight: 700, color: "#1C1512" }}>Export Orders as PDF</span>
+              <button onClick={() => setShowExportModal(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#8C8682", padding: "4px", display: "flex", flexShrink: 0 }}>
                 <X style={{ width: 16, height: 16 }} />
               </button>
             </div>
@@ -317,7 +317,7 @@ export default function OrdersPage() {
                 type="date"
                 value={exportFrom}
                 onChange={(e) => setExportFrom(e.target.value)}
-                style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "10px 12px", background: "#FAF7F2", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "13px", fontFamily: "sans-serif", color: "#1C1512", outline: "none" }}
+                style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "10px 12px", background: "#FAF7F2", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "14px", fontFamily: "sans-serif", outline: "none", minWidth: 0 }}
               />
             </div>
             <div style={{ marginBottom: "20px" }}>
@@ -326,19 +326,19 @@ export default function OrdersPage() {
                 type="date"
                 value={exportTo}
                 onChange={(e) => setExportTo(e.target.value)}
-                style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "10px 12px", background: "#FAF7F2", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "13px", fontFamily: "sans-serif", color: "#1C1512", outline: "none" }}
+                style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "10px 12px", background: "#FAF7F2", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "14px", fontFamily: "sans-serif", outline: "none", minWidth: 0 }}
               />
             </div>
             <div style={{ display: "flex", gap: "10px" }}>
               <button
                 onClick={() => setShowExportModal(false)}
-                style={{ flex: 1, padding: "11px", background: "#fff", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "13px", fontWeight: 600, fontFamily: "sans-serif", color: "#1C1512", cursor: "pointer" }}
+                style={{ flex: 1, minWidth: 0, padding: "11px 8px", background: "#fff", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "13px", fontWeight: 600, fontFamily: "sans-serif", color: "#1C1512", cursor: "pointer" }}
               >
                 Cancel
               </button>
               <button
                 onClick={() => { setShowExportModal(false); handleExport(exportFrom || undefined, exportTo || undefined); }}
-                style={{ flex: 1, padding: "11px", background: "#C9956A", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: 600, fontFamily: "sans-serif", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                style={{ flex: 1, minWidth: 0, padding: "11px 8px", background: "#C9956A", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: 600, fontFamily: "sans-serif", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
               >
                 <Download style={{ width: 14, height: 14, flexShrink: 0 }} />
                 Export PDF
