@@ -301,10 +301,10 @@ export default function OrdersPage() {
       {/* Export Date Range Modal */}
       {showExportModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl w-full max-w-sm p-5 space-y-4">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-xl w-full max-w-sm p-5 space-y-4 overflow-hidden">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-base font-bold text-[#1C1512]">Export Orders as PDF</h2>
-              <button onClick={() => setShowExportModal(false)} className="p-1.5 text-[#8C8682] hover:text-[#1C1512] rounded-lg cursor-pointer">
+              <button onClick={() => setShowExportModal(false)} className="p-1.5 text-[#8C8682] hover:text-[#1C1512] rounded-lg cursor-pointer flex-shrink-0">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -313,14 +313,14 @@ export default function OrdersPage() {
               Select a date range to filter orders before exporting. Leave blank to export all current orders.
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-3 w-full">
               <div className="space-y-1.5">
                 <label className="block font-sans text-[10px] font-bold text-[#1C1512] uppercase tracking-wider">From Date</label>
                 <input
                   type="date"
                   value={exportFrom}
                   onChange={(e) => setExportFrom(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
+                  className="block w-full min-w-0 px-3 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
                 />
               </div>
               <div className="space-y-1.5">
@@ -329,7 +329,7 @@ export default function OrdersPage() {
                   type="date"
                   value={exportTo}
                   onChange={(e) => setExportTo(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
+                  className="block w-full min-w-0 px-3 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
                 />
               </div>
             </div>
@@ -337,7 +337,7 @@ export default function OrdersPage() {
             <div className="flex gap-3 pt-1">
               <button
                 onClick={() => setShowExportModal(false)}
-                className="flex-1 py-2.5 bg-white border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-semibold font-sans rounded-xl transition-colors cursor-pointer"
+                className="flex-1 min-w-0 py-2.5 bg-white border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-semibold font-sans rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -346,9 +346,9 @@ export default function OrdersPage() {
                   setShowExportModal(false);
                   handleExport(exportFrom || undefined, exportTo || undefined);
                 }}
-                className="flex-1 py-2.5 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
+                className="flex-1 min-w-0 py-2.5 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
               >
-                <Download className="h-4 w-4" />
+                <Download className="h-4 w-4 flex-shrink-0" />
                 Export PDF
               </button>
             </div>
