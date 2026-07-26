@@ -127,7 +127,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       if (itemsError) throw itemsError;
 
       clearCart();
-      router.push(`/checkout/upload?ref=${orderRef}&amount=${orderTotal}`);
+      router.push(`/checkout/upload?ref=${orderRef}&amount=${orderTotal}&name=${encodeURIComponent(fullName)}&address=${encodeURIComponent(address)}&state=${encodeURIComponent(selectedState)}`);
       onClose();
       setStep("form");
 

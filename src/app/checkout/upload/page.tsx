@@ -49,6 +49,9 @@ function UploadPageContent() {
   // Read search parameters with fallbacks
   const refParam = searchParams.get("ref") || "DV-000124";
   const amountParam = searchParams.get("amount") || "0";
+  const nameParam = searchParams.get("name") || "";
+  const addressParam = searchParams.get("address") || "";
+  const stateParam = searchParams.get("state") || "";
 
   // Format amount to Naira
   const formattedAmount = isNaN(Number(amountParam))
@@ -72,10 +75,9 @@ function UploadPageContent() {
     accountNumber: "0123456789",
   });
   const [vendorWhatsapp, setVendorWhatsapp] = useState("2348012345678");
-  const [orderDetails, setOrderDetails] = useState({ customerName: "", address: "", state: "" });
 
   useEffect(() => {
-    const loadBankSettings = async () => {
+    const loadSettings = async () => {
       try {
         const { data } = await supabase
           .from("cms_settings")
@@ -98,65 +100,34 @@ function UploadPageContent() {
         console.warn("Failed to load settings", err);
       }
     };
+    loadSettings();
+  }, []);
 
-    const loadOrderDetails = async () => {
-      try {
-        const { data } = await supabase
-          .from("orders")
-          .select("full_name, address, state")
-          .eq("id", refParam)
-          .maybeSingle();
-        if (data) {
-          setOrderDetails({
-            customerName: data.full_name || "",
-            address: data.address || "",
-            state: data.state || "",
-          });
-        }
-      } catch (err) {
-        console.warn("Failed to load order details", err);
-      }
-    };
-
-    loadBankSettings();
-    loadOrderDetails();
-  }, [refParam]);
-
-  const handleNotifyWhatsApp = async () => {
-    let name = orderDetails.customerName;
-    let addr = orderDetails.address;
-    let st = orderDetails.state;
-
-    // Re-fetch right when clicked to guarantee fresh data
-    try {
-      const { data } = await supabase
-        .from("orders")
-        .select("full_name, address, state")
-        .eq("id", refParam)
-        .maybeSingle();
-      if (data) {
-        name = data.full_name || name;
-        addr = data.address || addr;
-        st = data.state || st;
-      }
-    } catch (_) {}
-
+  const handleNotifyWhatsApp = () => {
     const now = new Date().toLocaleString("en-NG", {
       timeZone: "Africa/Lagos",
       dateStyle: "medium",
       timeStyle: "short",
     });
-    const message = encodeURIComponent(
-      `\uD83D\uDED2 *New Order Payment Uploaded*\n\n` +
-      `\uD83D\uDCE6 Order ID: ${refParam}\n` +
-      `\uD83D\uDC64 Customer: ${name || "\u2014"}\n` +
-      `\uD83D\uDCCD Delivery Address: ${addr || "\u2014"}${st ? `, ${st}` : ""}\n` +
-      `\uD83D\uDCB0 Amount: ${formattedAmount}\n` +
-      `\uD55C\uFE0F Date & Time: ${now} (WAT)\n\n` +
-      `I have uploaded my payment receipt for the above order. Kindly confirm my payment at your earliest convenience.\n\n` +
-      `Thank you!`
-    );
-    window.open(`https://wa.me/${vendorWhatsapp}?text=${message}`, "_blank");
+    const fullAddress = addressParam
+      ? `${addressParam}${stateParam ? `, ${stateParam}` : ""}`
+      : stateParam || "—";
+
+    const message = [
+      "*New Order Payment Uploaded*",
+      "",
+      `Order ID: ${refParam}`,
+      `Customer: ${nameParam || "—"}`,
+      `Delivery Address: ${fullAddress}`,
+      `Amount: ${formattedAmount}`,
+      `Date/Time: ${now} (WAT)`,
+      "",
+      "I have uploaded my payment receipt for the above order. Kindly confirm my payment at your earliest convenience.",
+      "",
+      "Thank you!",
+    ].join("\n");
+
+    window.open(`https://wa.me/${vendorWhatsapp}?text=${encodeURIComponent(message)}`, "_blank");
   };
 
   const handleCopy = (text: string, fieldName: string) => {
