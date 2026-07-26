@@ -300,27 +300,29 @@ export default function OrdersPage() {
 
       {/* Export Date Range Modal */}
       {showExportModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl max-w-sm w-full p-6 space-y-5">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl border border-gray-100 shadow-xl w-full sm:max-w-sm p-6 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-lg font-bold text-[#1C1512]">Export Orders as PDF</h2>
-              <button onClick={() => setShowExportModal(false)} className="p-1 text-[#8C8682] hover:text-[#1C1512] rounded-lg cursor-pointer">
-                <Download className="h-4 w-4 rotate-45" />
+              <button onClick={() => setShowExportModal(false)} className="p-1.5 text-[#8C8682] hover:text-[#1C1512] hover:bg-[#FAF7F2] rounded-lg cursor-pointer transition-colors">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
-            <p className="font-sans text-xs text-[#8C8682]">
-              Select a date range to filter orders before exporting. Leave blank to export all current orders.
+            <p className="font-sans text-xs text-[#8C8682] leading-relaxed">
+              Select a date range to filter orders before exporting. Leave both blank to export all orders.
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="space-y-1.5">
                 <label className="block font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">From Date</label>
                 <input
                   type="date"
                   value={exportFrom}
                   onChange={(e) => setExportFrom(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
+                  className="w-full px-4 py-3 bg-[#FAF7F2] border border-gray-200 rounded-xl text-base font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
                 />
               </div>
               <div className="space-y-1.5">
@@ -329,15 +331,15 @@ export default function OrdersPage() {
                   type="date"
                   value={exportTo}
                   onChange={(e) => setExportTo(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
+                  className="w-full px-4 py-3 bg-[#FAF7F2] border border-gray-200 rounded-xl text-base font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row gap-3 pt-1">
               <button
                 onClick={() => setShowExportModal(false)}
-                className="flex-1 py-2.5 bg-white border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-semibold font-sans rounded-xl transition-colors cursor-pointer"
+                className="w-full sm:flex-1 py-3 bg-white border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-semibold font-sans rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -346,7 +348,7 @@ export default function OrdersPage() {
                   setShowExportModal(false);
                   handleExport(exportFrom || undefined, exportTo || undefined);
                 }}
-                className="flex-1 py-2.5 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
+                className="w-full sm:flex-1 py-3 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
               >
                 <Download className="h-4 w-4" />
                 Export PDF
