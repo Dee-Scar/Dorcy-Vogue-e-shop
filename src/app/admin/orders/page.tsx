@@ -44,6 +44,11 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [tabs, setTabs] = useState<TabDef[]>([]);
 
+  // Date range export modal
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFrom, setExportFrom] = useState("");
+  const [exportTo, setExportTo] = useState("");
+
   useEffect(() => {
     async function fetchOrders() {
       try {
@@ -94,9 +99,23 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
-  const handleExport = () => {
-    const exportOrders = filtered.length > 0 ? filtered : allOrders;
+  const handleExport = (fromDate?: string, toDate?: string) => {
+    let exportOrders: any[] = filtered.length > 0 ? filtered : allOrders;
+
+    // Apply date range filter if provided
+    if (fromDate || toDate) {
+      exportOrders = exportOrders.filter((o: any) => {
+        const orderDate = new Date(o.date);
+        if (fromDate && orderDate < new Date(fromDate)) return false;
+        if (toDate && orderDate > new Date(toDate + "T23:59:59")) return false;
+        return true;
+      });
+    }
+
     const exportDate = new Date().toLocaleDateString("en-NG", { dateStyle: "medium" });
+    const dateRange = fromDate || toDate
+      ? ` | ${fromDate ? new Date(fromDate).toLocaleDateString("en-NG", { dateStyle: "medium" }) : "All"} — ${toDate ? new Date(toDate).toLocaleDateString("en-NG", { dateStyle: "medium" }) : "Today"}`
+      : "";
 
     const rows = exportOrders.map((o: any, idx: number) => `
       <tr style="background:${idx % 2 === 0 ? "#fff" : "#faf7f2"}">
@@ -129,7 +148,7 @@ export default function OrdersPage() {
       <div class="header">
         <div>
           <h1>DORCY VOGUE</h1>
-          <p>Orders Report — Exported on ${exportDate}</p>
+          <p>Orders Report — Exported on ${exportDate}${dateRange}</p>
         </div>
         <span class="badge">${exportOrders.length} Orders</span>
       </div>
@@ -185,10 +204,10 @@ export default function OrdersPage() {
             <span className="hidden sm:inline">Filter</span>
           </button>
           <button
-            onClick={handleExport}
-            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-sans font-medium text-[#1C1512] hover:border-gray-300 transition-colors cursor-pointer">
+            onClick={() => setShowExportModal(true)}
+            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white border border-[#C9956A] rounded-xl text-sm font-sans font-semibold transition-colors cursor-pointer">
             <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">Export PDF</span>
           </button>
         </div>
       </header>
@@ -278,6 +297,64 @@ export default function OrdersPage() {
           )}
         </div>
       </main>
+
+      {/* Export Date Range Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl max-w-sm w-full p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-serif text-lg font-bold text-[#1C1512]">Export Orders as PDF</h2>
+              <button onClick={() => setShowExportModal(false)} className="p-1 text-[#8C8682] hover:text-[#1C1512] rounded-lg cursor-pointer">
+                <Download className="h-4 w-4 rotate-45" />
+              </button>
+            </div>
+
+            <p className="font-sans text-xs text-[#8C8682]">
+              Select a date range to filter orders before exporting. Leave blank to export all current orders.
+            </p>
+
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="block font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">From Date</label>
+                <input
+                  type="date"
+                  value={exportFrom}
+                  onChange={(e) => setExportFrom(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">To Date</label>
+                <input
+                  type="date"
+                  value={exportTo}
+                  onChange={(e) => setExportTo(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors cursor-pointer"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="flex-1 py-2.5 bg-white border border-gray-200 hover:border-gray-300 text-[#1C1512] text-sm font-semibold font-sans rounded-xl transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowExportModal(false);
+                  handleExport(exportFrom || undefined, exportTo || undefined);
+                }}
+                className="flex-1 py-2.5 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
