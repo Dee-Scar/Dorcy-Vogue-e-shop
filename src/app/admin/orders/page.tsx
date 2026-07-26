@@ -298,49 +298,100 @@ export default function OrdersPage() {
         </div>
       </main>
 
-      {/* Export Date Range Modal */}
+      {/* Export Date Range Modal — bottom sheet on mobile */}
       {showExportModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" style={{ padding: "16px" }}>
-          <div style={{ width: "min(320px, calc(100vw - 32px))", background: "#fff", borderRadius: "16px", padding: "20px", boxShadow: "0 8px 40px rgba(0,0,0,0.18)", boxSizing: "border-box", overflow: "hidden" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
-              <span style={{ fontFamily: "serif", fontSize: "15px", fontWeight: 700, color: "#1C1512" }}>Export Orders as PDF</span>
-              <button onClick={() => setShowExportModal(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#8C8682", padding: "4px", display: "flex", flexShrink: 0 }}>
-                <X style={{ width: 16, height: 16 }} />
+        <div className="fixed inset-0 z-50 flex flex-col justify-end" style={{ background: "rgba(0,0,0,0.4)" }} onClick={() => setShowExportModal(false)}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              borderRadius: "20px 20px 0 0",
+              padding: "24px 20px 32px",
+              width: "100%",
+              boxSizing: "border-box",
+            }}
+          >
+            {/* Handle bar */}
+            <div style={{ width: 40, height: 4, background: "#e5e0d8", borderRadius: 2, margin: "0 auto 20px" }} />
+
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <span style={{ fontFamily: "serif", fontSize: 17, fontWeight: 700, color: "#1C1512" }}>Export Orders as PDF</span>
+              <button onClick={() => setShowExportModal(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                <X style={{ width: 18, height: 18, color: "#8C8682" }} />
               </button>
             </div>
-            <p style={{ fontFamily: "sans-serif", fontSize: "11px", color: "#8C8682", marginBottom: "16px", lineHeight: 1.5 }}>
+
+            {/* Description */}
+            <p style={{ fontFamily: "sans-serif", fontSize: 12, color: "#8C8682", marginBottom: 20, lineHeight: 1.5 }}>
               Select a date range to filter orders before exporting. Leave blank to export all current orders.
             </p>
-            <div style={{ marginBottom: "12px" }}>
-              <label style={{ display: "block", fontFamily: "sans-serif", fontSize: "10px", fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "6px" }}>From Date</label>
+
+            {/* From Date */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", fontFamily: "sans-serif", fontSize: 11, fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                From Date
+              </label>
               <input
                 type="date"
                 value={exportFrom}
                 onChange={(e) => setExportFrom(e.target.value)}
-                style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "10px 12px", background: "#FAF7F2", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "14px", fontFamily: "sans-serif", outline: "none", minWidth: 0 }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  padding: "12px 14px",
+                  background: "#FAF7F2",
+                  border: "1px solid #e5e0d8",
+                  borderRadius: 12,
+                  fontSize: 15,
+                  fontFamily: "sans-serif",
+                  outline: "none",
+                  WebkitAppearance: "none",
+                  appearance: "none",
+                }}
               />
             </div>
-            <div style={{ marginBottom: "20px" }}>
-              <label style={{ display: "block", fontFamily: "sans-serif", fontSize: "10px", fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "6px" }}>To Date</label>
+
+            {/* To Date */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: "block", fontFamily: "sans-serif", fontSize: 11, fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                To Date
+              </label>
               <input
                 type="date"
                 value={exportTo}
                 onChange={(e) => setExportTo(e.target.value)}
-                style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "10px 12px", background: "#FAF7F2", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "14px", fontFamily: "sans-serif", outline: "none", minWidth: 0 }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  padding: "12px 14px",
+                  background: "#FAF7F2",
+                  border: "1px solid #e5e0d8",
+                  borderRadius: 12,
+                  fontSize: 15,
+                  fontFamily: "sans-serif",
+                  outline: "none",
+                  WebkitAppearance: "none",
+                  appearance: "none",
+                }}
               />
             </div>
-            <div style={{ display: "flex", gap: "10px" }}>
+
+            {/* Buttons */}
+            <div style={{ display: "flex", gap: 10 }}>
               <button
                 onClick={() => setShowExportModal(false)}
-                style={{ flex: 1, minWidth: 0, padding: "11px 8px", background: "#fff", border: "1px solid #e5e0d8", borderRadius: "10px", fontSize: "13px", fontWeight: 600, fontFamily: "sans-serif", color: "#1C1512", cursor: "pointer" }}
+                style={{ flex: 1, padding: "13px 8px", background: "#fff", border: "1px solid #e5e0d8", borderRadius: 12, fontSize: 14, fontWeight: 600, fontFamily: "sans-serif", color: "#1C1512", cursor: "pointer" }}
               >
                 Cancel
               </button>
               <button
                 onClick={() => { setShowExportModal(false); handleExport(exportFrom || undefined, exportTo || undefined); }}
-                style={{ flex: 1, minWidth: 0, padding: "11px 8px", background: "#C9956A", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: 600, fontFamily: "sans-serif", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                style={{ flex: 1, padding: "13px 8px", background: "#C9956A", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 600, fontFamily: "sans-serif", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
               >
-                <Download style={{ width: 14, height: 14, flexShrink: 0 }} />
+                <Download style={{ width: 15, height: 15, flexShrink: 0 }} />
                 Export PDF
               </button>
             </div>
