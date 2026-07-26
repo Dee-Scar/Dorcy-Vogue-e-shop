@@ -114,17 +114,17 @@ function UploadPageContent() {
       : stateParam || "—";
 
     const message = [
-      "\uD83D\uDED2\uFE0F *New Order Payment Uploaded*",
+      "🛍️ *New Order Payment Uploaded*",
       "",
-      `\uD83D\uDCE6 Order ID: ${refParam}`,
-      `\uD83D\uDC64 Customer: ${nameParam || "\u2014"}`,
-      `\uD83D\uDCCD Delivery Address: ${fullAddress}`,
-      `\uD83D\uDCB0 Amount: ${formattedAmount}`,
-      `\uD83D\uDD50 Date/Time: ${now} (WAT)`,
+      `📦 Order ID: ${refParam}`,
+      `👤 Customer: ${nameParam || "—"}`,
+      `📍 Delivery Address: ${fullAddress}`,
+      `💰 Amount: ${formattedAmount}`,
+      `🕐 Date/Time: ${now} (WAT)`,
       "",
       "I have uploaded my payment receipt for the above order. Kindly confirm my payment at your earliest convenience.",
       "",
-      "Thank you! \uD83D\uDE4F",
+      "Thank you! 🙏",
     ].join("\n");
 
     window.open(`https://wa.me/${vendorWhatsapp}?text=${encodeURIComponent(message)}`, "_blank");
