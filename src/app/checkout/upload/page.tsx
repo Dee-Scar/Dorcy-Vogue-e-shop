@@ -114,7 +114,7 @@ function UploadPageContent() {
       : stateParam || "—";
 
     const message = [
-      "\uD83D\uDED2 *New Order Payment Uploaded*",
+      "\uD83D\uDED2\uFE0F *New Order Payment Uploaded*",
       "",
       `\uD83D\uDCE6 Order ID: ${refParam}`,
       `\uD83D\uDC64 Customer: ${nameParam || "\u2014"}`,
