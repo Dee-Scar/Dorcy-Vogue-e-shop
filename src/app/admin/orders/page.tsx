@@ -332,22 +332,30 @@ export default function OrdersPage() {
               <label style={{ display: "block", fontFamily: "sans-serif", fontSize: 10, fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
                 From Date
               </label>
-              <input
-                type="date"
-                value={exportFrom}
-                onChange={(e) => setExportFrom(e.target.value)}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  boxSizing: "border-box",
-                  padding: "11px 12px",
-                  background: "#FAF7F2",
-                  border: "1px solid #e5e0d8",
-                  borderRadius: 10,
-                  fontSize: 14,
-                  outline: "none",
-                }}
-              />
+              <div style={{ position: "relative" }}>
+                <input
+                  type="date"
+                  value={exportFrom}
+                  onChange={(e) => setExportFrom(e.target.value)}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    boxSizing: "border-box",
+                    padding: "11px 12px",
+                    background: "#FAF7F2",
+                    border: "1px solid #e5e0d8",
+                    borderRadius: 10,
+                    fontSize: 14,
+                    outline: "none",
+                    color: exportFrom ? "#1C1512" : "transparent",
+                  }}
+                />
+                {!exportFrom && (
+                  <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#aaa", pointerEvents: "none", fontFamily: "sans-serif" }}>
+                    dd/mm/yyyy
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* To Date */}
@@ -355,22 +363,30 @@ export default function OrdersPage() {
               <label style={{ display: "block", fontFamily: "sans-serif", fontSize: 10, fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
                 To Date
               </label>
-              <input
-                type="date"
-                value={exportTo}
-                onChange={(e) => setExportTo(e.target.value)}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  boxSizing: "border-box",
-                  padding: "11px 12px",
-                  background: "#FAF7F2",
-                  border: "1px solid #e5e0d8",
-                  borderRadius: 10,
-                  fontSize: 14,
-                  outline: "none",
-                }}
-              />
+              <div style={{ position: "relative" }}>
+                <input
+                  type="date"
+                  value={exportTo}
+                  onChange={(e) => setExportTo(e.target.value)}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    boxSizing: "border-box",
+                    padding: "11px 12px",
+                    background: "#FAF7F2",
+                    border: "1px solid #e5e0d8",
+                    borderRadius: 10,
+                    fontSize: 14,
+                    outline: "none",
+                    color: exportTo ? "#1C1512" : "transparent",
+                  }}
+                />
+                {!exportTo && (
+                  <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#aaa", pointerEvents: "none", fontFamily: "sans-serif" }}>
+                    dd/mm/yyyy
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Buttons */}
