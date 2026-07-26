@@ -307,7 +307,7 @@ export default function OrdersPage() {
             style={{
               background: "#fff",
               borderRadius: "20px 20px 0 0",
-              padding: "20px 20px 32px",
+              padding: "20px 24px 32px",
               boxSizing: "border-box",
             }}
           >
