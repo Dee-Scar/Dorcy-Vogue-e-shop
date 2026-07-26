@@ -101,10 +101,10 @@ export default function OrdersPage() {
 
   const parseDate = (val: string) => {
     if (!val) return null;
-    const parts = val.split("/");
+    const parts = val.split(/[.\/]/);
     if (parts.length === 3) {
       const [dd, mm, yyyy] = parts;
-      return new Date(`${yyyy}-${mm}-${dd}`);
+      return new Date(`${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`);
     }
     return new Date(val);
   };
@@ -312,7 +312,7 @@ export default function OrdersPage() {
         <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4" style={{ background: "rgba(0,0,0,0.4)" }} onClick={() => setShowExportModal(false)}>
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-sm sm:rounded-2xl"
+            className="w-full sm:max-w-sm export-modal-card"
             style={{
               background: "#fff",
               borderRadius: "20px 20px 0 0",
@@ -320,8 +320,10 @@ export default function OrdersPage() {
               boxSizing: "border-box",
             }}
           >
-            {/* Mobile drag handle */}
+            {/* Mobile drag handle — hidden on desktop */}
             <div className="sm:hidden" style={{ width: 40, height: 4, background: "#e5e0d8", borderRadius: 2, margin: "0 auto 16px" }} />
+
+            <style>{`@media (min-width: 640px) { .export-modal-card { border-radius: 16px !important; } }`}</style>
 
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
@@ -343,7 +345,7 @@ export default function OrdersPage() {
               </label>
               <input
                 type="text"
-                placeholder="DD/MM/YYYY"
+                placeholder="DD.MM.YYYY"
                 value={exportFrom}
                 onChange={(e) => setExportFrom(e.target.value)}
                 style={{
@@ -369,7 +371,7 @@ export default function OrdersPage() {
               </label>
               <input
                 type="text"
-                placeholder="DD/MM/YYYY"
+                placeholder="DD.MM.YYYY"
                 value={exportTo}
                 onChange={(e) => setExportTo(e.target.value)}
                 style={{
