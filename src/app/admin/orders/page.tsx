@@ -99,14 +99,24 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
+  const parseDate = (val: string) => {
+    if (!val) return null;
+    const parts = val.split("/");
+    if (parts.length === 3) {
+      const [dd, mm, yyyy] = parts;
+      return new Date(`${yyyy}-${mm}-${dd}`);
+    }
+    return new Date(val);
+  };
+
   const handleExport = (fromDate?: string, toDate?: string) => {
     let exportOrders: any[] = filtered.length > 0 ? filtered : allOrders;
 
     if (fromDate || toDate) {
       exportOrders = exportOrders.filter((o: any) => {
         const orderDate = new Date(o.date);
-        if (fromDate && orderDate < new Date(fromDate)) return false;
-        if (toDate && orderDate > new Date(toDate + "T23:59:59")) return false;
+        if (fromDate) { const f = parseDate(fromDate); if (f && orderDate < f) return false; }
+        if (toDate) { const t = parseDate(toDate); if (t) { t.setHours(23,59,59); if (orderDate > t) return false; } }
         return true;
       });
     }
@@ -332,7 +342,8 @@ export default function OrdersPage() {
                 From Date
               </label>
               <input
-                type="date"
+                type="text"
+                placeholder="DD/MM/YYYY"
                 value={exportFrom}
                 onChange={(e) => setExportFrom(e.target.value)}
                 style={{
@@ -357,7 +368,8 @@ export default function OrdersPage() {
                 To Date
               </label>
               <input
-                type="date"
+                type="text"
+                placeholder="DD/MM/YYYY"
                 value={exportTo}
                 onChange={(e) => setExportTo(e.target.value)}
                 style={{
