@@ -99,15 +99,24 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
+  const parseDate = (val: string) => {
+    if (!val) return null;
+    const parts = val.split("/");
+    if (parts.length === 3) {
+      const [dd, mm, yyyy] = parts;
+      return new Date(`${yyyy}-${mm}-${dd}`);
+    }
+    return new Date(val);
+  };
+
   const handleExport = (fromDate?: string, toDate?: string) => {
     let exportOrders: any[] = filtered.length > 0 ? filtered : allOrders;
 
-    // Apply date range filter if provided
     if (fromDate || toDate) {
       exportOrders = exportOrders.filter((o: any) => {
         const orderDate = new Date(o.date);
-        if (fromDate && orderDate < new Date(fromDate)) return false;
-        if (toDate && orderDate > new Date(toDate + "T23:59:59")) return false;
+        if (fromDate) { const f = parseDate(fromDate); if (f && orderDate < f) return false; }
+        if (toDate) { const t = parseDate(toDate); if (t) { t.setHours(23,59,59); if (orderDate > t) return false; } }
         return true;
       });
     }
@@ -307,7 +316,7 @@ export default function OrdersPage() {
             style={{
               background: "#fff",
               borderRadius: "20px 20px 0 0",
-              padding: "20px 24px 32px",
+              padding: "20px 24px 32px 24px",
               boxSizing: "border-box",
             }}
           >
@@ -332,30 +341,25 @@ export default function OrdersPage() {
               <label style={{ display: "block", fontFamily: "sans-serif", fontSize: 10, fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
                 From Date
               </label>
-              <div style={{ position: "relative" }}>
-                <input
-                  type="date"
-                  value={exportFrom}
-                  onChange={(e) => setExportFrom(e.target.value)}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "11px 12px",
-                    background: "#FAF7F2",
-                    border: "1px solid #e5e0d8",
-                    borderRadius: 10,
-                    fontSize: 14,
-                    outline: "none",
-                    color: exportFrom ? "#1C1512" : "transparent",
-                  }}
-                />
-                {!exportFrom && (
-                  <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#aaa", pointerEvents: "none", fontFamily: "sans-serif" }}>
-                    dd/mm/yyyy
-                  </span>
-                )}
-              </div>
+              <input
+                type="text"
+                placeholder="DD/MM/YYYY"
+                value={exportFrom}
+                onChange={(e) => setExportFrom(e.target.value)}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  padding: "12px 14px",
+                  background: "#FAF7F2",
+                  border: "1px solid #e5e0d8",
+                  borderRadius: 10,
+                  fontSize: 14,
+                  fontFamily: "sans-serif",
+                  color: "#1C1512",
+                  outline: "none",
+                }}
+              />
             </div>
 
             {/* To Date */}
@@ -363,30 +367,25 @@ export default function OrdersPage() {
               <label style={{ display: "block", fontFamily: "sans-serif", fontSize: 10, fontWeight: 700, color: "#1C1512", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
                 To Date
               </label>
-              <div style={{ position: "relative" }}>
-                <input
-                  type="date"
-                  value={exportTo}
-                  onChange={(e) => setExportTo(e.target.value)}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "11px 12px",
-                    background: "#FAF7F2",
-                    border: "1px solid #e5e0d8",
-                    borderRadius: 10,
-                    fontSize: 14,
-                    outline: "none",
-                    color: exportTo ? "#1C1512" : "transparent",
-                  }}
-                />
-                {!exportTo && (
-                  <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#aaa", pointerEvents: "none", fontFamily: "sans-serif" }}>
-                    dd/mm/yyyy
-                  </span>
-                )}
-              </div>
+              <input
+                type="text"
+                placeholder="DD/MM/YYYY"
+                value={exportTo}
+                onChange={(e) => setExportTo(e.target.value)}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  padding: "12px 14px",
+                  background: "#FAF7F2",
+                  border: "1px solid #e5e0d8",
+                  borderRadius: 10,
+                  fontSize: 14,
+                  fontFamily: "sans-serif",
+                  color: "#1C1512",
+                  outline: "none",
+                }}
+              />
             </div>
 
             {/* Buttons */}
