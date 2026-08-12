@@ -99,6 +99,18 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
+  const formatDateInput = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+    return `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4, 8)}`;
+  };
+
+  const handleDateChange = (val: string, setter: (v: string) => void) => {
+    const formatted = formatDateInput(val);
+    setter(formatted);
+  };
+
   const parseDate = (val: string) => {
     if (!val) return null;
     const parts = val.split(/[.\/]/);
@@ -347,7 +359,8 @@ export default function OrdersPage() {
                 type="text"
                 placeholder="DD.MM.YYYY"
                 value={exportFrom}
-                onChange={(e) => setExportFrom(e.target.value)}
+                onChange={(e) => handleDateChange(e.target.value, setExportFrom)}
+                maxLength={10}
                 style={{
                   display: "block",
                   width: "100%",
@@ -373,7 +386,8 @@ export default function OrdersPage() {
                 type="text"
                 placeholder="DD.MM.YYYY"
                 value={exportTo}
-                onChange={(e) => setExportTo(e.target.value)}
+                onChange={(e) => handleDateChange(e.target.value, setExportTo)}
+                maxLength={10}
                 style={{
                   display: "block",
                   width: "100%",
