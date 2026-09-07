@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { fileTypeFromBuffer } from "file-type";
 
 export async function POST(request: Request) {
   try {
@@ -15,8 +16,22 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://fqtdhlbfsapkpgnxocpi.supabase.co";
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxdGRobGJmc2Fwa3BnbnhvY3BpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MzE3ODI1NCwiZXhwIjoyMDk4NzU0MjU0fQ.s0JEDmQAaSFB3VUowJaauL1bXbJ_A69rcM7aZc0xT8Q";
+    // Validate file size (5MB limit)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File size exceeds 5MB limit." },
+        { status: 400 }
+      );
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Missing required environment variables: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    }
 
     // Initialize admin client to bypass RLS policies
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
@@ -26,19 +41,39 @@ export async function POST(request: Request) {
       },
     });
 
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${orderId}_${Date.now()}.${fileExt}`;
-    const filePath = `receipts/${fileName}`;
-
-    // Convert file to array buffer for upload
+    // Convert file to buffer for validation and upload
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
+    // Validate file type using magic numbers (file signature)
+    const detectedType = await fileTypeFromBuffer(buffer);
+    
+    // Whitelist of allowed MIME types
+    const ALLOWED_TYPES = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "application/pdf"
+    ];
+
+    // Verify the detected type matches allowed types
+    if (!detectedType || !ALLOWED_TYPES.includes(detectedType.mime)) {
+      return NextResponse.json(
+        { error: "Invalid file type. Only JPG, PNG, WEBP, and PDF files are allowed." },
+        { status: 400 }
+      );
+    }
+
+    // Use detected extension (not client-provided)
+    const safeExt = detectedType.ext;
+    const fileName = `${orderId}_${Date.now()}.${safeExt}`;
+    const filePath = `receipts/${fileName}`;
 
     // Upload to receipts bucket using service role client
     const { error: uploadError } = await supabaseAdmin.storage
       .from("receipts")
       .upload(filePath, buffer, {
-        contentType: file.type,
+        contentType: detectedType.mime, // Use validated MIME type
         cacheControl: "3600",
         upsert: true,
       });

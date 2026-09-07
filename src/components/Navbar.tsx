@@ -6,6 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { AnnouncementMarquee } from "./AnnouncementMarquee";
 
 export const Navbar = () => {
   const { toggleCart, cartCount } = useCart();
@@ -36,8 +37,11 @@ export const Navbar = () => {
 
   return (
     <>
+      {/* Announcement Marquee */}
+      <AnnouncementMarquee />
+      
       <header
-        className={`fixed top-0 left-0 w-full z-40 transition-all duration-300 ${
+        className={`fixed top-[40px] left-0 w-full z-40 transition-all duration-300 ${
           isScrolled
             ? "bg-white/80 backdrop-blur-md border-b border-[#FAF7F2]/20 shadow-sm py-4"
             : "bg-transparent py-6"

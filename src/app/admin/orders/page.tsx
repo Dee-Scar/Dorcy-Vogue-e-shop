@@ -106,9 +106,36 @@ export default function OrdersPage() {
     return `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4, 8)}`;
   };
 
+  const validateDate = (dateStr: string): boolean => {
+    if (dateStr.length !== 10) return true; // Not complete yet
+    
+    const [dd, mm, yyyy] = dateStr.split('.').map(Number);
+    
+    // Validate year
+    if (!yyyy || yyyy < 1900 || yyyy > 2100) return false;
+    
+    // Validate month
+    if (!mm || mm < 1 || mm > 12) return false;
+    
+    // Validate day
+    const daysInMonth = new Date(yyyy, mm, 0).getDate();
+    if (!dd || dd < 1 || dd > daysInMonth) return false;
+    
+    return true;
+  };
+
   const handleDateChange = (val: string, setter: (v: string) => void) => {
     const formatted = formatDateInput(val);
     setter(formatted);
+    
+    // Validate when date is complete
+    if (formatted.length === 10 && !validateDate(formatted)) {
+      // Show error feedback
+      setTimeout(() => {
+        alert('Invalid date. Please enter a valid date in DD.MM.YYYY format.');
+        setter('');
+      }, 100);
+    }
   };
 
   const parseDate = (val: string) => {

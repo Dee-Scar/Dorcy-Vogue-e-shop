@@ -136,7 +136,7 @@ export default function Home() {
   const availableCategories = ["All", ...Array.from(new Set(featuredProducts.map(p => p.category)))];
 
   return (
-    <div className="flex-grow flex flex-col pt-[70px]">
+    <div className="flex-grow flex flex-col pt-[110px]">
       {/* Navigation Headers */}
       <Navbar />
 

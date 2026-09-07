@@ -42,7 +42,7 @@ function SuccessPageContent() {
   }, []);
 
   return (
-    <div className="flex-grow flex flex-col pt-[80px] bg-[#FAF7F2] min-h-screen items-center justify-center select-none px-4 sm:px-6">
+    <div className="flex-grow flex flex-col pt-[120px] bg-[#FAF7F2] min-h-screen items-center justify-center select-none px-4 sm:px-6">
       <div className="max-w-xl w-full text-center space-y-6 py-10">
         
         {/* Success Icon */}
@@ -155,7 +155,7 @@ export default function SuccessPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex flex-col pt-[80px] bg-[#FAF7F2] items-center justify-center">
+        <div className="min-h-screen flex flex-col pt-[120px] bg-[#FAF7F2] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-[#B78A62]" />
         </div>
       }

@@ -166,14 +166,14 @@ function FAQPageContent() {
 
   if (loading) {
     return (
-      <div className="flex-grow flex items-center justify-center pt-[80px] bg-[#FAF7F2] min-h-screen">
+      <div className="flex-grow flex items-center justify-center pt-[120px] bg-[#FAF7F2] min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-[#B78A62]" />
       </div>
     );
   }
 
   return (
-    <div className="flex-grow flex flex-col pt-[80px] bg-[#FAF7F2] min-h-screen">
+    <div className="flex-grow flex flex-col pt-[120px] bg-[#FAF7F2] min-h-screen">
       <main className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-10">
 
         {/* Page Title */}
@@ -226,7 +226,7 @@ export default function FAQPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex flex-col pt-[80px] bg-[#FAF7F2] items-center justify-center">
+        <div className="min-h-screen flex flex-col pt-[120px] bg-[#FAF7F2] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-[#B78A62]" />
         </div>
       }

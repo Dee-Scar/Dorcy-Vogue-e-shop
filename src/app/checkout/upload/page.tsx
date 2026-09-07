@@ -216,7 +216,7 @@ function UploadPageContent() {
   };
 
   return (
-    <div className="flex-grow flex flex-col pt-[80px] bg-[#FAF7F2] min-h-screen items-center justify-center px-4 sm:px-6 select-none relative">
+    <div className="flex-grow flex flex-col pt-[120px] bg-[#FAF7F2] min-h-screen items-center justify-center px-4 sm:px-6 select-none relative">
       
       {/* File input (hidden) */}
       <input
@@ -473,7 +473,7 @@ export default function UploadReceiptPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex flex-col pt-[80px] bg-[#FAF7F2] items-center justify-center">
+        <div className="min-h-screen flex flex-col pt-[120px] bg-[#FAF7F2] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-[#B78A62]" />
         </div>
       }

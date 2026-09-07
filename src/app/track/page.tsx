@@ -147,7 +147,7 @@ function TrackPageContent() {
   };
 
   return (
-    <div className="flex-grow flex flex-col pt-[80px] bg-[#FAF7F2] min-h-screen">
+    <div className="flex-grow flex flex-col pt-[120px] bg-[#FAF7F2] min-h-screen">
       <Navbar />
 
       <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-10">
@@ -358,7 +358,7 @@ export default function TrackOrderPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex flex-col pt-[80px] bg-[#FAF7F2] items-center justify-center">
+        <div className="min-h-screen flex flex-col pt-[120px] bg-[#FAF7F2] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-[#B78A62]" />
         </div>
       }

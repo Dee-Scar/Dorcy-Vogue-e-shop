@@ -167,7 +167,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col pt-[80px] bg-[#FAF7F2]">
+      <div className="min-h-screen flex flex-col pt-[120px] bg-[#FAF7F2]">
         <Navbar />
         <div className="flex-grow flex items-center justify-center">
           <div className="w-10 h-10 border-4 border-[#B78A62] border-t-transparent rounded-full animate-spin" />
@@ -178,7 +178,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col pt-[80px] bg-[#FAF7F2]">
+      <div className="min-h-screen flex flex-col pt-[120px] bg-[#FAF7F2]">
         <Navbar />
         <div className="flex-grow flex flex-col items-center justify-center text-center p-8 space-y-4">
           <h2 className="font-serif text-2xl font-bold text-[#1C1512]">Product Not Found</h2>
@@ -214,7 +214,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   const handleQuantityDecrement = () => setQuantity((prev) => Math.max(1, prev - 1));
 
   return (
-    <div className="min-h-screen flex flex-col pt-[80px] bg-[#FAF7F2] select-none">
+    <div className="min-h-screen flex flex-col pt-[120px] bg-[#FAF7F2] select-none">
       <Navbar />
 
       <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">

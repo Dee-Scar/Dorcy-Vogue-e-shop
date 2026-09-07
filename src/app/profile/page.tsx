@@ -31,7 +31,7 @@ function ProfilePageContent() {
   // Show spinner while auth is resolving or redirecting
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] pt-[80px]">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] pt-[120px]">
         <Loader2 className="h-8 w-8 animate-spin text-[#B78A62]" />
       </div>
     );
@@ -180,7 +180,7 @@ function ProfilePageContent() {
   };
 
   return (
-    <div className="flex-grow flex flex-col pt-[80px] bg-[#FAF7F2] min-h-screen">
+    <div className="flex-grow flex flex-col pt-[120px] bg-[#FAF7F2] min-h-screen">
       <main className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-10">
         
         {/* Profile Header Block */}
@@ -635,7 +635,7 @@ export default function ProfilePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex flex-col pt-[80px] bg-[#FAF7F2] items-center justify-center">
+        <div className="min-h-screen flex flex-col pt-[120px] bg-[#FAF7F2] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-[#B78A62]" />
         </div>
       }
