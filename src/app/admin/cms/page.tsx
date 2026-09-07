@@ -33,6 +33,7 @@ export default function CMSPage() {
   const [aboutTitle, setAboutTitle] = useState("");
   const [aboutDescription, setAboutDescription] = useState("");
   const [featuredProducts, setFeaturedProducts] = useState<string[]>([]);
+  const [announcementText, setAnnouncementText] = useState("PRE-ORDER IS ON GOING ✦ Check Out Our Available Items ✦ ORDER NOW");
   const [contactInfo, setContactInfo] = useState({
     phone: "",
     email: "",
@@ -138,6 +139,7 @@ export default function CMSPage() {
           setAboutTitle(data.about_title || "");
           setAboutDescription(data.about_description || "");
           setFeaturedProducts(data.featured_products || []);
+          setAnnouncementText(data.announcement_text || "PRE-ORDER IS ON GOING ✦ Check Out Our Available Items ✦ ORDER NOW");
           setContactInfo({
             phone: data.contact_phone || "",
             email: data.contact_email || "",
@@ -167,6 +169,7 @@ export default function CMSPage() {
           about_title: aboutTitle,
           about_description: aboutDescription,
           featured_products: featuredProducts,
+          announcement_text: announcementText,
           contact_phone: contactInfo.phone,
           contact_email: contactInfo.email,
           contact_whatsapp: contactInfo.whatsapp,
@@ -436,6 +439,36 @@ export default function CMSPage() {
                   <p className="text-[#8C8682] text-xs uppercase font-semibold tracking-wider">Description</p>
                   <p className="text-[#1C1512]/90 mt-1 leading-relaxed">{aboutDescription}</p>
                 </div>
+              </div>
+            </div>
+
+            {/* Announcement Banner */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#C9956A]" />
+                  <h2 className="font-serif text-base font-bold text-[#1C1512]">Announcement Banner</h2>
+                </div>
+              </div>
+
+              <p className="font-sans text-xs text-[#8C8682] -mt-1">
+                This text scrolls continuously at the top of every page. Use ✦ symbol for decorative separators.
+              </p>
+
+              <div className="space-y-2">
+                <label className="font-sans text-xs font-semibold text-[#1C1512] uppercase tracking-wider">
+                  Banner Text
+                </label>
+                <textarea
+                  value={announcementText}
+                  onChange={(e) => setAnnouncementText(e.target.value)}
+                  placeholder="PRE-ORDER IS ON GOING ✦ Check Out Our Available Items ✦ ORDER NOW"
+                  rows={3}
+                  className="w-full px-4 py-3 bg-[#FAF7F2]/50 border border-gray-200 rounded-xl text-sm font-sans text-[#1C1512] placeholder-[#8C8682]/50 focus:outline-none focus:border-[#C9956A] transition-colors resize-none"
+                />
+                <p className="font-sans text-[10px] text-[#8C8682] italic">
+                  Preview: <span className="font-semibold text-[#C9956A]">{announcementText || "Empty banner"}</span>
+                </p>
               </div>
             </div>
 
