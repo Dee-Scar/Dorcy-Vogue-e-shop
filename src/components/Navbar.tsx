@@ -50,126 +50,139 @@ export const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Mobile Navbar Layout */}
           <div className="flex md:hidden items-center justify-between w-full">
-            {/* Left: Hamburger menu */}
-            <div className="flex-1 flex justify-start">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 bg-white shadow-sm border border-[#1C1512]/5 rounded-full text-[#1C1512] hover:text-[#B78A62] transition-colors cursor-pointer"
-              >
-                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-            </div>
-
-            {/* Middle: Logo */}
-            <div className="flex-shrink-0 text-center">
-              <Link
-                href="/"
-                className="font-serif text-xl font-bold tracking-wider text-[#1C1512] transition-colors hover:text-[#B78A62]"
-              >
-                DORCY VOGUE
+            {/* Left: Logo with Tagline */}
+            <div className="flex-shrink-0">
+              <Link href="/" className="block">
+                <div className="font-serif text-xl font-bold tracking-wider text-[#1C1512] transition-colors hover:text-[#B78A62]">
+                  DORCY VOGUE
+                </div>
+                <div className="font-sans text-[9px] tracking-widest text-[#1C1512]/60">
+                  Style Beyond Gender
+                </div>
               </Link>
             </div>
 
-            {/* Right: Actions (Sign In + Cart) */}
-            <div className="flex-1 flex items-center justify-end space-x-2">
-              {/* Profile / Sign In */}
+            {/* Right: User, Cart, and Hamburger */}
+            <div className="flex items-center space-x-2">
+              {/* User Icon */}
               {user ? (
                 <Link
                   href="/profile"
-                  className="p-2 bg-white shadow-sm border border-[#1C1512]/5 rounded-full text-[#1C1512] hover:text-[#B78A62] transition-all duration-300"
+                  className="p-2 text-[#1C1512] hover:text-[#B78A62] transition-colors"
                   title={`Hi, ${user.name}`}
                 >
-                  <UserIcon className="h-5 w-5" />
+                  <UserIcon className="h-6 w-6" />
                 </Link>
               ) : (
                 <Link
                   href="/login"
-                  className="p-2 bg-white shadow-sm border border-[#1C1512]/5 rounded-full text-[#1C1512] hover:text-[#B78A62] transition-all duration-300"
+                  className="p-2 text-[#1C1512] hover:text-[#B78A62] transition-colors"
                   title="Sign In"
                 >
-                  <UserIcon className="h-5 w-5" />
+                  <UserIcon className="h-6 w-6" />
                 </Link>
               )}
 
-              {/* Cart Toggle */}
+              {/* Cart Icon */}
               <button
                 onClick={toggleCart}
-                className="relative p-2 bg-white shadow-sm border border-[#1C1512]/5 hover:border-[#B78A62]/30 rounded-full text-[#1C1512] hover:text-[#B78A62] hover:shadow-md transition-all duration-300 cursor-pointer"
+                className="relative p-2 text-[#1C1512] hover:text-[#B78A62] transition-colors cursor-pointer"
               >
-                <ShoppingBag className="h-5 w-5" />
+                <ShoppingBag className="h-6 w-6" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#B78A62] text-white text-[9px] font-bold w-4.5 h-4.5 flex items-center justify-center rounded-full border border-white">
+                  <span className="absolute -top-0.5 -right-0.5 bg-[#1C1512] text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full border border-white px-1">
                     {cartCount}
                   </span>
                 )}
+              </button>
+
+              {/* Hamburger Menu */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 text-[#1C1512] hover:text-[#B78A62] transition-colors cursor-pointer"
+              >
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
             </div>
           </div>
 
           {/* Desktop Navbar Layout */}
           <div className="hidden md:flex items-center justify-between w-full">
-            {/* Logo */}
+            {/* Logo with Tagline */}
             <div className="flex-shrink-0">
-              <Link
-                href="/"
-                className="font-serif text-2xl font-bold tracking-wider text-[#1C1512] transition-colors hover:text-[#B78A62]"
-              >
-                DORCY VOGUE
+              <Link href="/" className="block">
+                <div className="font-serif text-2xl font-bold tracking-wider text-[#1C1512] transition-colors hover:text-[#B78A62]">
+                  DORCY VOGUE
+                </div>
+                <div className="font-sans text-xs tracking-widest text-[#1C1512]/60 mt-0.5">
+                  Style Beyond Gender
+                </div>
               </Link>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="flex space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className="font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors"
-                >
-                  {link.name}
-                </Link>
-              ))}
+            {/* Desktop Navigation - Centered */}
+            <nav className="flex space-x-8 absolute left-1/2 transform -translate-x-1/2">
+              <Link
+                href="/"
+                className="font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors border-b-2 border-[#1C1512] pb-1"
+              >
+                Home
+              </Link>
+              <Link
+                href="/shop"
+                className="font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors"
+              >
+                Shop
+              </Link>
+              <Link
+                href="/shop?filter=new"
+                className="font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors"
+              >
+                New Arrivals
+              </Link>
+              <Link
+                href="/shop?category=Accessories"
+                className="font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors"
+              >
+                Accessories
+              </Link>
+              <Link
+                href="/#about"
+                className="font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors"
+              >
+                About Us
+              </Link>
             </nav>
 
-            {/* Actions */}
-            <div className="flex items-center space-x-4">
-              {/* Profile */}
+            {/* Actions - Right Side */}
+            <div className="flex items-center space-x-3">
+              {/* User Icon */}
               {user ? (
-                <div className="flex items-center space-x-1.5">
-                  <Link
-                    href="/profile"
-                    className="flex items-center space-x-1 hover:text-[#B78A62] transition-colors"
-                  >
-                    <span className="hidden sm:inline font-sans text-sm font-semibold text-[#1C1512] cursor-pointer hover:text-[#B78A62]">
-                      Hi, {user.name.split(" ")[0]}
-                    </span>
-                  </Link>
-                  <button
-                    onClick={logout}
-                    title="Log Out"
-                    className="p-2 hover:bg-[#FAF7F2] rounded-full text-[#1C1512] hover:text-red-500 transition-colors cursor-pointer"
-                  >
-                    <LogOut className="h-5 w-5" />
-                  </button>
-                </div>
+                <Link
+                  href="/profile"
+                  className="p-2 hover:bg-[#FAF7F2] rounded-full text-[#1C1512] hover:text-[#B78A62] transition-colors"
+                  title={`Hi, ${user.name}`}
+                >
+                  <UserIcon className="h-6 w-6" />
+                </Link>
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center space-x-2 px-4 py-2 border border-[#B78A62]/30 hover:border-[#B78A62] text-sm font-medium rounded-full text-[#1C1512] hover:bg-[#B78A62] hover:text-white transition-all duration-300"
+                  className="p-2 hover:bg-[#FAF7F2] rounded-full text-[#1C1512] hover:text-[#B78A62] transition-colors"
+                  title="Sign In"
                 >
-                  <UserIcon className="h-4 w-4" />
-                  <span className="hidden sm:inline">Sign In</span>
+                  <UserIcon className="h-6 w-6" />
                 </Link>
               )}
 
-              {/* Cart Toggle */}
+              {/* Cart Icon with Badge */}
               <button
                 onClick={toggleCart}
-                className="relative p-2.5 bg-white shadow-sm border border-[#1C1512]/5 hover:border-[#B78A62]/30 rounded-full text-[#1C1512] hover:text-[#B78A62] hover:shadow-md transition-all duration-300 cursor-pointer"
+                className="relative p-2 hover:bg-[#FAF7F2] rounded-full text-[#1C1512] hover:text-[#B78A62] transition-colors cursor-pointer"
               >
-                <ShoppingBag className="h-5 w-5" />
+                <ShoppingBag className="h-6 w-6" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#B78A62] text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border border-white animate-pulse">
+                  <span className="absolute -top-0.5 -right-0.5 bg-[#1C1512] text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full border border-white px-1">
                     {cartCount}
                   </span>
                 )}
