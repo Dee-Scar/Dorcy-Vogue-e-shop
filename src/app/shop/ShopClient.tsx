@@ -126,7 +126,7 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
         <div className="flex flex-col lg:flex-row gap-8">
 
           {/* Sidebar - Desktop Filters */}
-          <aside className="hidden lg:block w-[240px] shrink-0 space-y-8 select-none">
+          <aside className="hidden lg:block w-[240px] shrink-0 space-y-8 select-none sticky top-[140px] self-start">
             <div className="space-y-4">
               <h3 className="font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">Categories</h3>
               <div className="space-y-2.5">
