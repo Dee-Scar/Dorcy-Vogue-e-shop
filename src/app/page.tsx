@@ -250,15 +250,27 @@ export default function Home() {
 
           {/* Grid Layout */}
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onQuickView={setSelectedProduct}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onQuickView={setSelectedProduct}
+                  />
+                ))}
+              </div>
+
+              {/* View All Button */}
+              <div className="text-center mt-12">
+                <a
+                  href="/shop"
+                  className="inline-block px-8 py-3.5 border-2 border-[#1C1512] hover:bg-[#1C1512] text-[#1C1512] hover:text-white font-sans text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer"
+                >
+                  View All Featured Products
+                </a>
+              </div>
+            </>
           ) : (
              <div className="text-center py-10 text-gray-500">No featured products selected in CMS.</div>
           )}
