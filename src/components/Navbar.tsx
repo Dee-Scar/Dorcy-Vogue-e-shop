@@ -32,7 +32,7 @@ export const Navbar = () => {
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Shop", href: "/shop" },
-    { name: "New Arrivals", href: "/shop?filter=new" },
+    { name: "New Arrivals", href: "/#new-arrivals" },
     { name: "Categories", href: "/#categories" },
     { name: "Track Order", href: "/track" },
     { name: "FAQ", href: "/faq" },
@@ -150,9 +150,9 @@ export const Navbar = () => {
                 Shop
               </Link>
               <Link
-                href="/shop?filter=new"
+                href="/#new-arrivals"
                 className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
-                  pathname.includes("filter=new") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                  pathname.includes("#new-arrivals") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
                 }`}
               >
                 New Arrivals

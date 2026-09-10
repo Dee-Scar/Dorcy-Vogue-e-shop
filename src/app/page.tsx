@@ -279,7 +279,7 @@ export default function Home() {
 
       {/* New Arrivals Section */}
       {newArrivalProducts.length > 0 && (
-        <section className="py-20 bg-white">
+        <section id="new-arrivals" className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-xl mx-auto mb-12">
               <span className="font-sans text-xs font-bold text-[#B78A62] uppercase tracking-widest">
