@@ -92,6 +92,9 @@ export default function Home() {
   const featuredNames = cmsSettings?.featured_products || [];
   const featuredProducts = products.filter(p => featuredNames.includes(p.name));
   
+  const newArrivalNames = cmsSettings?.new_arrival_products || [];
+  const newArrivalProducts = products.filter(p => newArrivalNames.includes(p.name));
+  
   const filteredProducts =
     categoryFilter === "All"
       ? featuredProducts
@@ -261,6 +264,46 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* New Arrivals Section */}
+      {newArrivalProducts.length > 0 && (
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-xl mx-auto mb-12">
+              <span className="font-sans text-xs font-bold text-[#B78A62] uppercase tracking-widest">
+                Fresh From The Rack
+              </span>
+              <h2 className="font-serif text-3xl md:text-4xl font-bold text-[#1C1512] mt-2">
+                New Arrivals
+              </h2>
+              <p className="font-sans text-sm text-[#8C8682] mt-4 leading-relaxed">
+                Discover our latest pieces handpicked just for you
+              </p>
+            </div>
+
+            {/* Grid Layout */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+              {newArrivalProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onQuickView={setSelectedProduct}
+                />
+              ))}
+            </div>
+
+            {/* View All Button */}
+            <div className="text-center mt-12">
+              <a
+                href="/shop?filter=new"
+                className="inline-block px-8 py-3.5 border-2 border-[#1C1512] hover:bg-[#1C1512] text-[#1C1512] hover:text-white font-sans text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer"
+              >
+                View All New Arrivals
+              </a>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Why Shop With Us Section */}
       <section className="py-16 bg-[#FAF7F2] border-t border-[#1C1512]/5">

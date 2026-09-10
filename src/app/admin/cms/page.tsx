@@ -33,6 +33,7 @@ export default function CMSPage() {
   const [aboutTitle, setAboutTitle] = useState("");
   const [aboutDescription, setAboutDescription] = useState("");
   const [featuredProducts, setFeaturedProducts] = useState<string[]>([]);
+  const [newArrivalProducts, setNewArrivalProducts] = useState<string[]>([]);
   const [announcementText, setAnnouncementText] = useState("PRE-ORDER IS ON GOING ✦ Check Out Our Available Items ✦ ORDER NOW");
   const [contactInfo, setContactInfo] = useState({
     phone: "",
@@ -100,9 +101,11 @@ export default function CMSPage() {
 
   // Featured Products picker
   const [showFeaturedModal, setShowFeaturedModal] = useState(false);
+  const [showNewArrivalModal, setShowNewArrivalModal] = useState(false);
   const [catalog, setCatalog] = useState<CatalogProduct[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [featuredSearch, setFeaturedSearch] = useState("");
+  const [newArrivalSearch, setNewArrivalSearch] = useState("");
 
   const openFeaturedModal = async () => {
     setShowFeaturedModal(true);
@@ -117,8 +120,27 @@ export default function CMSPage() {
     }
   };
 
+  const openNewArrivalModal = async () => {
+    setShowNewArrivalModal(true);
+    if (catalog.length === 0) {
+      setCatalogLoading(true);
+      const { data } = await supabase
+        .from("products")
+        .select("id,name,category,price,image")
+        .order("created_at", { ascending: false });
+      if (data) setCatalog(data as CatalogProduct[]);
+      setCatalogLoading(false);
+    }
+  };
+
   const toggleFeatured = (name: string) => {
     setFeaturedProducts((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  };
+
+  const toggleNewArrival = (name: string) => {
+    setNewArrivalProducts((prev) =>
       prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
     );
   };
@@ -139,6 +161,7 @@ export default function CMSPage() {
           setAboutTitle(data.about_title || "");
           setAboutDescription(data.about_description || "");
           setFeaturedProducts(data.featured_products || []);
+          setNewArrivalProducts(data.new_arrival_products || []);
           setAnnouncementText(data.announcement_text || "PRE-ORDER IS ON GOING ✦ Check Out Our Available Items ✦ ORDER NOW");
           setContactInfo({
             phone: data.contact_phone || "",
@@ -169,6 +192,7 @@ export default function CMSPage() {
           about_title: aboutTitle,
           about_description: aboutDescription,
           featured_products: featuredProducts,
+          new_arrival_products: newArrivalProducts,
           announcement_text: announcementText,
           contact_phone: contactInfo.phone,
           contact_email: contactInfo.email,
@@ -520,6 +544,55 @@ export default function CMSPage() {
                 </div>
               )}
             </div>
+
+            {/* New Arrivals */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#C9956A]" />
+                  <h2 className="font-serif text-base font-bold text-[#1C1512]">New Arrivals</h2>
+                </div>
+                <button
+                  onClick={openNewArrivalModal}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#C9956A]/20 hover:border-[#C9956A]/40 text-[#C9956A] text-xs font-bold font-sans rounded-lg transition-colors cursor-pointer"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  Manage
+                </button>
+              </div>
+
+              <p className="font-sans text-xs text-[#8C8682] -mt-1">
+                These products appear in the &quot;New Arrivals&quot; section on the home page. Remember to <span className="font-semibold">Publish Changes</span> to go live.
+              </p>
+
+              {/* Items List */}
+              {newArrivalProducts.length === 0 ? (
+                <div className="p-6 text-center border border-dashed border-gray-200 rounded-xl">
+                  <p className="font-sans text-sm text-[#8C8682]">No new arrival products yet. Click <span className="font-semibold text-[#C9956A]">Manage</span> to choose some.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {newArrivalProducts.map((prod, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3.5 bg-[#FAF7F2]/50 border border-gray-100 rounded-xl hover:border-gray-200 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-5 h-5 flex items-center justify-center rounded bg-[#C9956A]/10 text-[#C9956A] text-[10px] font-bold">{idx + 1}</span>
+                        <span className="font-sans text-sm font-semibold text-[#1C1512]">{prod}</span>
+                      </div>
+                      <button
+                        onClick={() => toggleNewArrival(prod)}
+                        className="p-1.5 text-[#8C8682] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        title="Remove from new arrivals"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right Column */}
@@ -860,6 +933,93 @@ export default function CMSPage() {
               <p className="font-sans text-xs text-[#8C8682]">Don&apos;t forget to Publish Changes.</p>
               <button
                 onClick={() => setShowFeaturedModal(false)}
+                className="px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Arrival Products Picker Modal */}
+      {showNewArrivalModal && (
+        <div className="fixed inset-0 bg-[#120E0D]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl max-w-lg w-full flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
+              <div>
+                <h2 className="font-serif text-xl font-bold text-[#1C1512]">New Arrivals</h2>
+                <p className="font-sans text-xs text-[#8C8682] mt-0.5">
+                  {newArrivalProducts.length} selected
+                </p>
+              </div>
+              <button
+                onClick={() => setShowNewArrivalModal(false)}
+                className="p-1 text-[#8C8682] hover:text-[#1C1512] rounded-lg cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 pt-4 pb-3">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={newArrivalSearch}
+                onChange={(e) => setNewArrivalSearch(e.target.value)}
+                className="w-full px-4 py-2.5 bg-[#FAF7F2] border border-gray-200 rounded-xl text-sm font-sans focus:outline-none focus:border-[#C9956A] transition-colors"
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 pb-4 space-y-2">
+              {catalogLoading ? (
+                <div className="py-12 flex justify-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#C9956A]" />
+                </div>
+              ) : catalog.length === 0 ? (
+                <p className="py-12 text-center font-sans text-sm text-[#8C8682]">No products found. Add products first.</p>
+              ) : (
+                catalog
+                  .filter((p) =>
+                    p.name.toLowerCase().includes(newArrivalSearch.toLowerCase()) ||
+                    (p.category || "").toLowerCase().includes(newArrivalSearch.toLowerCase())
+                  )
+                  .map((p) => {
+                    const active = newArrivalProducts.includes(p.name);
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => toggleNewArrival(p.name)}
+                        className={`w-full flex items-center gap-3 p-2.5 rounded-xl border text-left transition-colors cursor-pointer ${
+                          active
+                            ? "border-[#C9956A] bg-[#C9956A]/5"
+                            : "border-gray-100 hover:border-gray-200"
+                        }`}
+                      >
+                        <div className="w-11 h-11 rounded-lg bg-[#FAF7F2] border border-gray-100 overflow-hidden flex-shrink-0">
+                          {p.image && <img src={p.image} alt={p.name} className="w-full h-full object-cover" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-sans text-sm font-semibold text-[#1C1512] truncate">{p.name}</p>
+                          <p className="font-sans text-xs text-[#8C8682]">{p.category} · ₦{Number(p.price).toLocaleString()}</p>
+                        </div>
+                        <span
+                          className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 ${
+                            active ? "bg-[#C9956A] border-[#C9956A]" : "border-gray-300"
+                          }`}
+                        >
+                          {active && <CheckCircle className="w-4 h-4 text-white" />}
+                        </span>
+                      </button>
+                    );
+                  })
+              )}
+            </div>
+
+            <div className="flex items-center justify-between gap-3 p-6 pt-4 border-t border-gray-100">
+              <p className="font-sans text-xs text-[#8C8682]">Don&apos;t forget to Publish Changes.</p>
+              <button
+                onClick={() => setShowNewArrivalModal(false)}
                 className="px-5 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white text-sm font-semibold font-sans rounded-xl transition-colors shadow-sm cursor-pointer"
               >
                 Done
