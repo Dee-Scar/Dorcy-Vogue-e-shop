@@ -143,11 +143,11 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
         <div className="flex flex-col lg:flex-row gap-8">
 
           {/* Sidebar - Desktop Filters */}
-          <aside className="hidden lg:block w-[240px] shrink-0 space-y-8 select-none sticky top-[140px] self-start">
+          <aside className="hidden lg:block w-[240px] shrink-0 space-y-4 select-none sticky top-[140px] self-start">
             {/* Special Filters */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h3 className="font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">Collections</h3>
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 <label className="flex items-center space-x-3 cursor-pointer group">
                   <input
                     type="radio"
@@ -173,9 +173,9 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
 
             <hr className="border-[#1C1512]/10" />
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h3 className="font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">Categories</h3>
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {(dbCategories.length > 0 ? dbCategories : CATEGORIES).map((category) => (
                   <label key={category} className="flex items-center space-x-3 cursor-pointer group">
                     <input
@@ -192,7 +192,7 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
 
             <hr className="border-[#1C1512]/10" />
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h3 className="font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">Price Range</h3>
               <div className="flex items-center space-x-2">
                 <div className="relative flex-1">
