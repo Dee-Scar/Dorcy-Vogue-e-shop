@@ -15,6 +15,7 @@ export const Navbar = () => {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeHash, setActiveHash] = useState("");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,8 +26,21 @@ export const Navbar = () => {
       }
     };
 
+    // Track hash changes for anchor links
+    const handleHashChange = () => {
+      setActiveHash(window.location.hash);
+    };
+
+    // Set initial hash
+    setActiveHash(window.location.hash);
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("hashchange", handleHashChange);
+    
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("hashchange", handleHashChange);
+    };
   }, []);
 
   const navLinks = [
@@ -41,8 +55,13 @@ export const Navbar = () => {
 
   // Helper to check if link is active
   const isActiveLink = (href: string) => {
-    if (href === "/") return pathname === "/";
-    if (href.startsWith("/#")) return pathname === "/";
+    // Check for hash-based links (e.g., /#new-arrivals, /#categories)
+    if (href.includes("#")) {
+      const hash = href.split("#")[1];
+      return activeHash === `#${hash}`;
+    }
+    // Regular path matching
+    if (href === "/") return pathname === "/" && !activeHash;
     return pathname.startsWith(href);
   };
 
@@ -152,7 +171,7 @@ export const Navbar = () => {
               <Link
                 href="/#new-arrivals"
                 className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
-                  pathname.includes("#new-arrivals") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                  isActiveLink("/#new-arrivals") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
                 }`}
               >
                 New Arrivals
@@ -160,7 +179,7 @@ export const Navbar = () => {
               <Link
                 href="/#categories"
                 className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
-                  pathname.includes("#categories") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                  isActiveLink("/#categories") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
                 }`}
               >
                 Categories
