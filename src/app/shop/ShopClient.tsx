@@ -29,12 +29,15 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
 
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [dbCategories, setDbCategories] = useState<string[]>(initialCategories);
+  const [featuredProductNames, setFeaturedProductNames] = useState<string[]>([]);
+  const [newArrivalProductNames, setNewArrivalProductNames] = useState<string[]>([]);
 
   async function fetchData(silent = false) {
     try {
-      const [prodRes, catRes] = await Promise.all([
+      const [prodRes, catRes, cmsRes] = await Promise.all([
         fetch("/api/products", { cache: "no-store" }).then((r) => r.json()),
         supabase.from("categories").select("name").eq("status", "Active"),
+        supabase.from("cms_settings").select("featured_products,new_arrival_products").eq("id", 1).single(),
       ]);
 
       if (prodRes.products) {
@@ -59,6 +62,11 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
       if (catRes.data) {
         setDbCategories(catRes.data.map((c: any) => c.name));
       }
+
+      if (cmsRes.data) {
+        setFeaturedProductNames(cmsRes.data.featured_products || []);
+        setNewArrivalProductNames(cmsRes.data.new_arrival_products || []);
+      }
     } catch (err) {
       console.error("Error fetching shop data:", err);
     }
@@ -77,6 +85,7 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
   }, []);
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [specialFilter, setSpecialFilter] = useState<string>(""); // "featured" or "new-arrivals"
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -85,7 +94,10 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const cat = params.get("category");
+    const filter = params.get("filter");
     if (cat) setSelectedCategories([cat]);
+    if (filter === "new") setSpecialFilter("new-arrivals");
+    if (filter === "featured") setSpecialFilter("featured");
   }, []);
 
   const handleCategoryToggle = (category: string) => {
@@ -96,6 +108,7 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
 
   const resetFilters = () => {
     setSelectedCategories([]);
+    setSpecialFilter("");
     setMinPrice("");
     setMaxPrice("");
     setSearchQuery("");
@@ -103,6 +116,10 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
   };
 
   const filteredProducts = products.filter((product) => {
+    // Special filters
+    if (specialFilter === "featured" && !featuredProductNames.includes(product.name)) return false;
+    if (specialFilter === "new-arrivals" && !newArrivalProductNames.includes(product.name)) return false;
+    
     if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) return false;
     if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase()) && !product.description.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     const min = minPrice ? parseFloat(minPrice) : 0;
@@ -127,6 +144,35 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
 
           {/* Sidebar - Desktop Filters */}
           <aside className="hidden lg:block w-[240px] shrink-0 space-y-8 select-none sticky top-[140px] self-start">
+            {/* Special Filters */}
+            <div className="space-y-4">
+              <h3 className="font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">Collections</h3>
+              <div className="space-y-2.5">
+                <label className="flex items-center space-x-3 cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="special-filter"
+                    checked={specialFilter === "featured"}
+                    onChange={() => setSpecialFilter(specialFilter === "featured" ? "" : "featured")}
+                    className="border-[#1C1512]/20 text-[#B78A62] focus:ring-[#B78A62] w-4 h-4 cursor-pointer accent-[#B78A62]"
+                  />
+                  <span className="font-sans text-sm text-[#1C1512]/75 group-hover:text-[#B78A62] transition-colors">Featured Products</span>
+                </label>
+                <label className="flex items-center space-x-3 cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="special-filter"
+                    checked={specialFilter === "new-arrivals"}
+                    onChange={() => setSpecialFilter(specialFilter === "new-arrivals" ? "" : "new-arrivals")}
+                    className="border-[#1C1512]/20 text-[#B78A62] focus:ring-[#B78A62] w-4 h-4 cursor-pointer accent-[#B78A62]"
+                  />
+                  <span className="font-sans text-sm text-[#1C1512]/75 group-hover:text-[#B78A62] transition-colors">New Arrivals</span>
+                </label>
+              </div>
+            </div>
+
+            <hr className="border-[#1C1512]/10" />
+
             <div className="space-y-4">
               <h3 className="font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">Categories</h3>
               <div className="space-y-2.5">
@@ -228,6 +274,33 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
                 <h2 className="font-serif text-xl font-bold text-[#1C1512]">Filters</h2>
                 <button onClick={() => setShowMobileFilters(false)} className="p-1 hover:bg-[#FAF7F2] rounded-full text-[#1C1512] transition-colors cursor-pointer"><X className="h-5 w-5" /></button>
               </div>
+              {/* Special Filters */}
+              <div className="space-y-4">
+                <h3 className="font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">Collections</h3>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="special-filter-mobile"
+                      checked={specialFilter === "featured"}
+                      onChange={() => setSpecialFilter(specialFilter === "featured" ? "" : "featured")}
+                      className="border-[#1C1512]/20 text-[#B78A62] w-4 h-4 cursor-pointer accent-[#B78A62]"
+                    />
+                    <span className="font-sans text-sm text-[#1C1512]/75">Featured Products</span>
+                  </label>
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="special-filter-mobile"
+                      checked={specialFilter === "new-arrivals"}
+                      onChange={() => setSpecialFilter(specialFilter === "new-arrivals" ? "" : "new-arrivals")}
+                      className="border-[#1C1512]/20 text-[#B78A62] w-4 h-4 cursor-pointer accent-[#B78A62]"
+                    />
+                    <span className="font-sans text-sm text-[#1C1512]/75">New Arrivals</span>
+                  </label>
+                </div>
+              </div>
+              <hr className="border-[#1C1512]/10" />
               <div className="space-y-4">
                 <h3 className="font-sans text-xs font-bold text-[#1C1512] uppercase tracking-wider">Categories</h3>
                 <div className="space-y-3">
