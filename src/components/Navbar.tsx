@@ -31,6 +31,7 @@ export const Navbar = () => {
 
   const navLinks = [
     { name: "Shop", href: "/shop" },
+    { name: "New Arrivals", href: "/shop?filter=new" },
     { name: "Categories", href: "/#categories" },
     { name: "Track Order", href: "/track" },
     { name: "FAQ", href: "/faq" },
@@ -156,20 +157,36 @@ export const Navbar = () => {
                 New Arrivals
               </Link>
               <Link
-                href="/shop?category=Accessories"
+                href="/#categories"
                 className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
-                  pathname.includes("category=Accessories") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                  pathname.includes("#categories") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
                 }`}
               >
-                Accessories
+                Categories
               </Link>
               <Link
-                href="/#about"
+                href="/track"
                 className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
-                  pathname.includes("#about") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                  isActiveLink("/track") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
                 }`}
               >
-                About Us
+                Track Order
+              </Link>
+              <Link
+                href="/faq"
+                className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
+                  isActiveLink("/faq") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                }`}
+              >
+                FAQ
+              </Link>
+              <Link
+                href="/contact"
+                className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
+                  isActiveLink("/contact") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                }`}
+              >
+                Contact
               </Link>
             </nav>
 
