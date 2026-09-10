@@ -72,9 +72,13 @@ function NavbarContent() {
       const hash = href.split("#")[1];
       return pathname === "/" && activeHash === `#${hash}`;
     }
+    // For /shop, only match if there are no query params
+    if (href === "/shop") {
+      return pathname === "/shop" && !searchParams.get("filter") && !searchParams.get("category");
+    }
     // Regular path matching
     if (href === "/") return pathname === "/" && !activeHash;
-    return pathname.startsWith(href);
+    return pathname === href;
   };
 
   return (
