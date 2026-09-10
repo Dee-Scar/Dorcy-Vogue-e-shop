@@ -47,7 +47,7 @@ export default function Home() {
           id: p.id as string,
           name: p.name as string,
           price: Number(p.price),
-          formattedPrice: "₦" + Number(p.price).toLocaleString(),
+          formattedPrice: "â‚¦" + Number(p.price).toLocaleString(),
           image: p.image as string,
           images: (p.images as string[]) || [],
           category: p.category as string,
@@ -77,7 +77,7 @@ export default function Home() {
     };
     document.addEventListener("visibilitychange", onVisibility);
 
-    // Poll every 5 seconds — reliable since RLS blocks anon realtime
+    // Poll every 5 seconds â€” reliable since RLS blocks anon realtime
     const interval = setInterval(() => fetchData(true), 5000);
 
     return () => {
@@ -344,7 +344,17 @@ export default function Home() {
                   </svg>
                 ),
                 title: "Quality You Can Trust",
-                text: "We carefully select pieces that give you great value for your money.", }, { icon: ( <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M5 13l4 4L19 7" /> </svg> ), title: "Reliable Service", text: "From ordering to delivery, we are committed to making your shopping experience smooth.", }, {
+                text: "We carefully select pieces that give you great value for your money.",
+              },
+              {
+                icon: (
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M5 13l4 4L19 7" />
+                  </svg>
+                ),
+                title: "Reliable Service",
+                text: "From ordering to delivery, we are committed to making your shopping experience smooth.",
+              }, {
                 icon: (
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -615,7 +625,7 @@ export default function Home() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-white/5 mt-12 pt-8 text-center text-xs">
-          <p>© {new Date().getFullYear()} DORCY VOGUE. All rights reserved.</p>
+          <p>Â© {new Date().getFullYear()} DORCY VOGUE. All rights reserved.</p>
         </div>
       </footer>
 
