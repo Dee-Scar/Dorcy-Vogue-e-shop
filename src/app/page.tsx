@@ -47,7 +47,7 @@ export default function Home() {
           id: p.id as string,
           name: p.name as string,
           price: Number(p.price),
-          formattedPrice: "â‚¦" + Number(p.price).toLocaleString(),
+          formattedPrice: "₦" + Number(p.price).toLocaleString(),
           image: p.image as string,
           images: (p.images as string[]) || [],
           category: p.category as string,
