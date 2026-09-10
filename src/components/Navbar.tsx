@@ -5,7 +5,7 @@ import { ShoppingBag, User as UserIcon, Menu, X, LogOut } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnnouncementMarquee } from "./AnnouncementMarquee";
 
@@ -13,6 +13,7 @@ export const Navbar = () => {
   const { toggleCart, cartCount } = useCart();
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeHash, setActiveHash] = useState("");
@@ -46,7 +47,7 @@ export const Navbar = () => {
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Shop", href: "/shop" },
-    { name: "New Arrivals", href: "/#new-arrivals" },
+    { name: "New Arrivals", href: "/shop?filter=new" },
     { name: "Categories", href: "/#categories" },
     { name: "Track Order", href: "/track" },
     { name: "FAQ", href: "/faq" },
@@ -55,10 +56,21 @@ export const Navbar = () => {
 
   // Helper to check if link is active
   const isActiveLink = (href: string) => {
-    // Check for hash-based links (e.g., /#new-arrivals, /#categories)
+    // Check for query parameters (e.g., /shop?filter=new)
+    if (href.includes("?")) {
+      const [path, query] = href.split("?");
+      if (pathname !== path) return false;
+      // Check if the query param matches
+      const params = new URLSearchParams(query);
+      for (const [key, value] of params.entries()) {
+        if (searchParams.get(key) !== value) return false;
+      }
+      return true;
+    }
+    // Check for hash-based links (e.g., /#categories)
     if (href.includes("#")) {
       const hash = href.split("#")[1];
-      return activeHash === `#${hash}`;
+      return pathname === "/" && activeHash === `#${hash}`;
     }
     // Regular path matching
     if (href === "/") return pathname === "/" && !activeHash;
@@ -169,9 +181,9 @@ export const Navbar = () => {
                 Shop
               </Link>
               <Link
-                href="/#new-arrivals"
+                href="/shop?filter=new"
                 className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
-                  isActiveLink("/#new-arrivals") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                  isActiveLink("/shop?filter=new") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
                 }`}
               >
                 New Arrivals
