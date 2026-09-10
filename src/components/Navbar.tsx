@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { ShoppingBag, User as UserIcon, Menu, X, LogOut } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
@@ -9,7 +9,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnnouncementMarquee } from "./AnnouncementMarquee";
 
-export const Navbar = () => {
+function NavbarContent() {
   const { toggleCart, cartCount } = useCart();
   const { user, logout } = useAuth();
   const pathname = usePathname();
@@ -318,5 +318,27 @@ export const Navbar = () => {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+// Wrapper component with Suspense boundary
+export const Navbar = () => {
+  return (
+    <Suspense fallback={
+      <>
+        <AnnouncementMarquee />
+        <header className="fixed top-[40px] left-0 w-full z-40 bg-transparent py-3">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between w-full">
+              <div className="font-serif text-2xl font-bold tracking-wider text-[#1C1512]">
+                DORCY VOGUE
+              </div>
+            </div>
+          </div>
+        </header>
+      </>
+    }>
+      <NavbarContent />
+    </Suspense>
   );
 };
