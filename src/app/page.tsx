@@ -326,7 +326,7 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
                 icon: (
@@ -336,15 +336,6 @@ export default function Home() {
                 ),
                 title: "Affordable Prices",
                 text: "Quality fashion and accessories at prices that won't break the bank.",
-              },
-              {
-                icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3 3L22 4" />
-                  </svg>
-                ),
-                title: "Quality You Can Trust",
-                text: "We carefully select pieces that give you great value for your money.",
               },
               {
                 icon: (
