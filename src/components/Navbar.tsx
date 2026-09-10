@@ -5,12 +5,14 @@ import { ShoppingBag, User as UserIcon, Menu, X, LogOut } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnnouncementMarquee } from "./AnnouncementMarquee";
 
 export const Navbar = () => {
   const { toggleCart, cartCount } = useCart();
   const { user, logout } = useAuth();
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -34,6 +36,13 @@ export const Navbar = () => {
     { name: "FAQ", href: "/faq" },
     { name: "Contact", href: "/contact" },
   ];
+
+  // Helper to check if link is active
+  const isActiveLink = (href: string) => {
+    if (href === "/") return pathname === "/";
+    if (href.startsWith("/#")) return pathname === "/";
+    return pathname.startsWith(href);
+  };
 
   return (
     <>
@@ -124,31 +133,41 @@ export const Navbar = () => {
             <nav className="flex space-x-8 absolute left-1/2 transform -translate-x-1/2">
               <Link
                 href="/"
-                className="font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors border-b-2 border-[#1C1512] pb-1"
+                className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
+                  isActiveLink("/") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                }`}
               >
                 Home
               </Link>
               <Link
                 href="/shop"
-                className="font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors"
+                className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
+                  isActiveLink("/shop") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                }`}
               >
                 Shop
               </Link>
               <Link
                 href="/shop?filter=new"
-                className="font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors"
+                className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
+                  pathname.includes("filter=new") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                }`}
               >
                 New Arrivals
               </Link>
               <Link
                 href="/shop?category=Accessories"
-                className="font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors"
+                className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
+                  pathname.includes("category=Accessories") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                }`}
               >
                 Accessories
               </Link>
               <Link
                 href="/#about"
-                className="font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors"
+                className={`font-sans text-sm font-medium tracking-wide text-[#1C1512] hover:text-[#B78A62] transition-colors ${
+                  pathname.includes("#about") ? "border-b-2 border-[#1C1512] pb-1" : "pb-1"
+                }`}
               >
                 About Us
               </Link>
