@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 const ADMIN_EMAIL = "dorcyben001@gmail.com";
-// Secret token to authorise this endpoint — stored in env
-const RESET_SECRET = process.env.ADMIN_RESET_SECRET || "dv-reset-2026";
+// Secret token to authorise this endpoint — stored in env, with no fallback:
+// a missing value must disable the endpoint, never open it to a guessable default.
+const RESET_SECRET = process.env.ADMIN_RESET_SECRET;
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
     const { password, secret } = await req.json();
+
+    if (!RESET_SECRET) {
+      console.error("ADMIN_RESET_SECRET is not set — admin password reset is disabled.");
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
 
     // Verify the secret matches
     if (secret !== RESET_SECRET) {
