@@ -6,7 +6,9 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "predev": "node scripts/scan-malware.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/scan-malware.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
