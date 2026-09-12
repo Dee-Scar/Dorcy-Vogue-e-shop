@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Vercel's image-optimization quota is exhausted on the current plan, which
+    // made /_next/image return 402 for any variant not already cached. Serve the
+    // originals from Supabase instead; drop this once the quota is available again.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
