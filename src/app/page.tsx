@@ -616,7 +616,7 @@ export default function Home() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-white/5 mt-12 pt-8 text-center text-xs">
-          <p>Â© {new Date().getFullYear()} DORCY VOGUE. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} DORCY VOGUE. All rights reserved.</p>
         </div>
       </footer>
 
