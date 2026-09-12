@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 function ChangePasswordContent() {
   const router = useRouter();
@@ -29,14 +30,20 @@ function ChangePasswordContent() {
 
     setSaving(true);
     try {
-      const res = await fetch("/api/admin-reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: newPassword, secret: "dv-reset-2026" }),
+      // Change the password through the admin's own signed-in session. A shared
+      // secret can never live here: client code ships to every visitor's browser.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Your session has expired. Please log in again.");
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update password.");
+      if (updateError) throw new Error(updateError.message);
+
       setSuccess(true);
+      await supabase.auth.signOut();
       setTimeout(() => router.replace("/admin/login"), 3000);
     } catch (err: any) {
       setError(err.message || "Failed to update password. Please try again.");
