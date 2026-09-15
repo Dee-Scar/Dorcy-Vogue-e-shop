@@ -3,6 +3,7 @@ import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -90,6 +91,7 @@ export default function RootLayout({
           <CartProvider>
             {children}
             <WhatsAppButton />
+            <ScrollToTop />
           </CartProvider>
         </AuthProvider>
       </body>
