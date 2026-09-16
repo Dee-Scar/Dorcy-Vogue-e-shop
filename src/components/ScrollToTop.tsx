@@ -37,12 +37,12 @@ export const ScrollToTop = () => {
           whileTap={{ scale: 0.95 }}
           aria-label="Back to top"
           title="Back to top"
-          className="fixed bottom-24 right-6 z-50 p-3.5 bg-[#C9956A] text-white rounded-full shadow-lg hover:shadow-xl hover:bg-[#A87A52] transition-all duration-300 flex items-center justify-center group cursor-pointer"
+          className="fixed bottom-20 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-[#C9956A] text-white shadow-lg hover:shadow-xl hover:bg-[#A87A52] transition-all duration-300 group cursor-pointer"
         >
-          <ArrowUp className="w-6 h-6" strokeWidth={2.5} />
+          <ArrowUp className="w-5 h-5" strokeWidth={2.5} />
 
           {/* Tooltip Label */}
-          <span className="absolute right-full mr-3.5 bg-[#1C1512] text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+          <span className="absolute right-full top-1/2 -translate-y-1/2 mr-3.5 bg-[#1C1512] text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
             Back to top
           </span>
         </motion.button>
