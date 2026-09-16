@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-const AUTO_MINIMISE_MS = 5000;
+const AUTO_MINIMISE_MS = 3000;
 
 const WhatsAppGlyph = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -14,17 +14,17 @@ const WhatsAppGlyph = ({ className }: { className?: string }) => (
 /**
  * WhatsApp button that stays out of the way: it sits as a small tab on the
  * right edge, expands to a full bubble when tapped, then tucks itself back
- * after five seconds. Hovering holds it open so it cannot vanish mid-click.
+ * after three seconds. The countdown is deliberately not paused on hover,
+ * because the bubble expands under the cursor and would never collapse.
  */
 export const WhatsAppButton = () => {
   const [expanded, setExpanded] = useState(false);
-  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
-    if (!expanded || hovered) return; // hovering pauses; leaving restarts the 5s
+    if (!expanded) return;
     const id = setTimeout(() => setExpanded(false), AUTO_MINIMISE_MS);
     return () => clearTimeout(id);
-  }, [expanded, hovered]);
+  }, [expanded]);
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -35,8 +35,6 @@ export const WhatsAppButton = () => {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0, opacity: 0 }}
           transition={{ type: "spring", damping: 12 }}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
           className="fixed bottom-6 right-6 z-50 group"
         >
           <motion.a
