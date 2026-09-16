@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 const FROM_EMAIL = "Dorcy Vogue <notifications@dorcyvogue.com>";
 const WHATSAPP_NUMBER = "2349071262856";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://dorcyvogue.com";
-const REMINDER_DELAY_MINUTES = 20;
+const REMINDER_DELAY_MINUTES = 2; // TEMPORARY: set back to 20 once testing confirms it works
 
 function admin() {
   return createClient(
