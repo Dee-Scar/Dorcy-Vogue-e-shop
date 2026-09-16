@@ -20,17 +20,19 @@ const CATEGORIES = [
 interface ShopClientProps {
   initialProducts: Product[];
   initialCategories: string[];
+  initialFeatured: string[];
+  initialNewArrivals: string[];
 }
 
-export function ShopClient({ initialProducts, initialCategories }: ShopClientProps) {
+export function ShopClient({ initialProducts, initialCategories, initialFeatured, initialNewArrivals }: ShopClientProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [dbCategories, setDbCategories] = useState<string[]>(initialCategories);
-  const [featuredProductNames, setFeaturedProductNames] = useState<string[]>([]);
-  const [newArrivalProductNames, setNewArrivalProductNames] = useState<string[]>([]);
+  const [featuredProductNames, setFeaturedProductNames] = useState<string[]>(initialFeatured);
+  const [newArrivalProductNames, setNewArrivalProductNames] = useState<string[]>(initialNewArrivals);
 
   async function fetchData(silent = false) {
     try {
@@ -73,6 +75,7 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
   }
 
   useEffect(() => {
+    fetchData(true); // the interval below only fires after 5s, which left the grid empty
     const onVisibility = () => {
       if (document.visibilityState === "visible") fetchData(true);
     };
@@ -117,8 +120,9 @@ export function ShopClient({ initialProducts, initialCategories }: ShopClientPro
 
   const filteredProducts = products.filter((product) => {
     // Special filters
-    if (specialFilter === "featured" && !featuredProductNames.includes(product.name)) return false;
-    if (specialFilter === "new-arrivals" && !newArrivalProductNames.includes(product.name)) return false;
+    // An empty CMS list means "not loaded", so show everything rather than nothing.
+    if (specialFilter === "featured" && featuredProductNames.length > 0 && !featuredProductNames.includes(product.name)) return false;
+    if (specialFilter === "new-arrivals" && newArrivalProductNames.length > 0 && !newArrivalProductNames.includes(product.name)) return false;
     
     if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) return false;
     if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase()) && !product.description.toLowerCase().includes(searchQuery.toLowerCase())) return false;

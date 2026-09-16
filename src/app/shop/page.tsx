@@ -3,15 +3,17 @@ import { createClient } from "@supabase/supabase-js";
 import { ShopClient } from "./ShopClient";
 import type { Product } from "@/data/products";
 
+function admin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  );
+}
+
 async function getInitialProducts(): Promise<Product[]> {
   try {
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } }
-    );
-
-    const { data } = await supabaseAdmin
+    const { data } = await admin()
       .from("products")
       .select("id,name,price,image,images,category,description,sizes,colors,status,stock")
       .neq("status", "Draft")
@@ -39,12 +41,7 @@ async function getInitialProducts(): Promise<Product[]> {
 
 async function getInitialCategories(): Promise<string[]> {
   try {
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } }
-    );
-    const { data } = await supabaseAdmin
+    const { data } = await admin()
       .from("categories")
       .select("name")
       .eq("status", "Active");
@@ -54,16 +51,41 @@ async function getInitialCategories(): Promise<string[]> {
   }
 }
 
+/**
+ * The ?filter=new and ?filter=featured views match products against these CMS
+ * lists. They must be rendered on the server: if the page first paints with
+ * empty lists, every product fails the filter and the shop briefly claims
+ * nothing matched.
+ */
+async function getInitialCmsLists(): Promise<{ featured: string[]; newArrivals: string[] }> {
+  try {
+    const { data } = await admin()
+      .from("cms_settings")
+      .select("featured_products,new_arrival_products")
+      .eq("id", 1)
+      .single();
+    return {
+      featured: data?.featured_products || [],
+      newArrivals: data?.new_arrival_products || [],
+    };
+  } catch {
+    return { featured: [], newArrivals: [] };
+  }
+}
+
 export default async function ShopPage() {
-  const [initialProducts, initialCategories] = await Promise.all([
+  const [initialProducts, initialCategories, cmsLists] = await Promise.all([
     getInitialProducts(),
     getInitialCategories(),
+    getInitialCmsLists(),
   ]);
 
   return (
     <ShopClient
       initialProducts={initialProducts}
       initialCategories={initialCategories}
+      initialFeatured={cmsLists.featured}
+      initialNewArrivals={cmsLists.newArrivals}
     />
   );
 }
