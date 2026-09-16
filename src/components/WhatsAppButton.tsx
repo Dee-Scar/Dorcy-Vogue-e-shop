@@ -2,9 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
 
-const STORAGE_KEY = "dv_whatsapp_minimized";
+const AUTO_MINIMISE_MS = 5000;
 
 const WhatsAppGlyph = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -13,54 +12,31 @@ const WhatsAppGlyph = ({ className }: { className?: string }) => (
 );
 
 /**
- * Floating WhatsApp button. It can be minimised to a small tab on the right
- * edge so it stops covering content, and that choice is remembered per browser.
+ * WhatsApp button that stays out of the way: it sits as a small tab on the
+ * right edge, expands to a full bubble when tapped, then tucks itself back
+ * after five seconds. Hovering holds it open so it cannot vanish mid-click.
  */
 export const WhatsAppButton = () => {
-  const [minimized, setMinimized] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
-    try {
-      setMinimized(localStorage.getItem(STORAGE_KEY) === "true");
-    } catch {
-      // private mode or blocked storage: just stay expanded
-    }
-  }, []);
-
-  const update = (value: boolean) => {
-    setMinimized(value);
-    try {
-      localStorage.setItem(STORAGE_KEY, String(value));
-    } catch {
-      // ignore: the button still works, it just will not be remembered
-    }
-  };
+    if (!expanded || hovered) return; // hovering pauses; leaving restarts the 5s
+    const id = setTimeout(() => setExpanded(false), AUTO_MINIMISE_MS);
+    return () => clearTimeout(id);
+  }, [expanded, hovered]);
 
   return (
     <AnimatePresence mode="wait" initial={false}>
-      {minimized ? (
-        <motion.button
-          key="tab"
-          type="button"
-          onClick={() => update(false)}
-          initial={{ x: 40, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: 40, opacity: 0 }}
-          transition={{ type: "spring", damping: 14 }}
-          whileTap={{ scale: 0.95 }}
-          aria-label="Show WhatsApp button"
-          title="Chat on WhatsApp"
-          className="fixed bottom-6 right-0 z-50 flex items-center rounded-l-full bg-[#25D366] py-2.5 pl-3 pr-2 text-white shadow-lg hover:bg-[#20ba5a] hover:pr-3 transition-all duration-300 cursor-pointer"
-        >
-          <WhatsAppGlyph className="w-4 h-4 fill-current" />
-        </motion.button>
-      ) : (
+      {expanded ? (
         <motion.div
           key="full"
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0, opacity: 0 }}
           transition={{ type: "spring", damping: 12 }}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
           className="fixed bottom-6 right-6 z-50 group"
         >
           <motion.a
@@ -77,22 +53,27 @@ export const WhatsAppButton = () => {
             <WhatsAppGlyph className="w-5 h-5 fill-current" />
           </motion.a>
 
-          {/* Minimise control: always visible on touch, hover-revealed on desktop */}
-          <button
-            type="button"
-            onClick={() => update(true)}
-            aria-label="Minimise WhatsApp button"
-            title="Minimise"
-            className="absolute -top-1 -left-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#1C1512] text-white shadow ring-2 ring-[#FAF7F2] transition-opacity duration-200 cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100"
-          >
-            <X className="h-3 w-3" strokeWidth={3} />
-          </button>
-
           {/* Tooltip Label */}
           <span className="absolute right-full top-1/2 -translate-y-1/2 mr-3.5 bg-[#1C1512] text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
             Chat on WhatsApp
           </span>
         </motion.div>
+      ) : (
+        <motion.button
+          key="tab"
+          type="button"
+          onClick={() => setExpanded(true)}
+          initial={{ x: 40, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: 40, opacity: 0 }}
+          transition={{ type: "spring", damping: 14 }}
+          whileTap={{ scale: 0.95 }}
+          aria-label="Open WhatsApp chat button"
+          title="Chat on WhatsApp"
+          className="fixed bottom-6 right-0 z-50 flex items-center rounded-l-full bg-[#25D366] py-2.5 pl-3 pr-2 text-white shadow-lg hover:bg-[#20ba5a] hover:pr-3 transition-all duration-300 cursor-pointer"
+        >
+          <WhatsAppGlyph className="w-4 h-4 fill-current" />
+        </motion.button>
       )}
     </AnimatePresence>
   );
