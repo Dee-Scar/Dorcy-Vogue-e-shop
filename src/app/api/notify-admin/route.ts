@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { scheduleOrderReminder, cancelOrderReminder } from "@/lib/orderReminder";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "dorcyvogue@gmail.com";
 const FROM_EMAIL = "Dorcy Vogue <notifications@dorcyvogue.com>";
@@ -23,6 +24,9 @@ export async function POST(req: NextRequest) {
 
     if (type === "new_order") {
       const { orderId, customerName, customerEmail, customerPhone, address, items, subtotal, shippingCost, total } = body;
+
+      // Hold a reminder for 20 minutes; cancelled automatically if the receipt arrives first.
+      await scheduleOrderReminder({ orderId, customerName, customerEmail, amount: Number(total) });
 
       const itemsHtml = (items || [])
         .map(
@@ -225,6 +229,8 @@ export async function POST(req: NextRequest) {
     if (type === "receipt_uploaded") {
       const { orderId, customerName, customerEmail, receiptUrl, amount } = body;
 
+      await cancelOrderReminder(orderId); // receipt is in, call off the reminder
+
       const html = `
         <!DOCTYPE html>
         <html>
@@ -317,6 +323,8 @@ export async function POST(req: NextRequest) {
     // ── Payment Confirmed → notify customer ──────────────────────────────────
     if (type === "payment_confirmed") {
       const { orderId, customerName, customerEmail, amount, items } = body;
+
+      await cancelOrderReminder(orderId); // safety net if the receipt step was skipped
 
       const itemsHtml = (items || [])
         .map(
