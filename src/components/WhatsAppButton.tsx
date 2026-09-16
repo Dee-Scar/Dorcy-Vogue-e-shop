@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-const AUTO_MINIMISE_MS = 3000;
+const AUTO_MINIMISE_MS = 5000;
 
 const WhatsAppGlyph = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -14,7 +14,7 @@ const WhatsAppGlyph = ({ className }: { className?: string }) => (
 /**
  * WhatsApp button that stays out of the way: it sits as a small tab on the
  * right edge, expands to a full bubble when tapped, then tucks itself back
- * after three seconds. The countdown is deliberately not paused on hover,
+ * after five seconds. The countdown is deliberately not paused on hover,
  * because the bubble expands under the cursor and would never collapse.
  */
 export const WhatsAppButton = () => {
