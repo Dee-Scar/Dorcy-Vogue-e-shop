@@ -273,7 +273,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                       fill
                       priority
                       sizes="(max-width: 1024px) 100vw, 50vw"
-                      className="object-cover"
+                      className="object-contain"
                     />
                   </motion.div>
                 )}
@@ -301,7 +301,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                         alt={`${product.name} Thumbnail ${idx + 1}`}
                         fill
                         sizes="120px"
-                        className="object-cover"
+                        className="object-contain"
                       />
                     </div>
                   </button>
