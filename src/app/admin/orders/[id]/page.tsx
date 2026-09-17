@@ -409,7 +409,10 @@ export default function OrderDetailsPage() {
                             <div className="flex items-center gap-3">
                               {item.image ? (
                                 /* eslint-disable-next-line @next/next/no-img-element */
-                                <img src={item.image} alt={item.name} className="h-12 w-12 rounded-lg object-cover border border-gray-100 flex-shrink-0" />
+                                <a href={item.image} target="_blank" rel="noopener noreferrer" title="Open full size">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={item.image} alt={item.name} className="h-12 w-12 rounded-lg object-cover border border-gray-100 flex-shrink-0 hover:ring-2 hover:ring-[#C9956A] transition-all cursor-pointer" />
+                                </a>
                               ) : (
                                 <div className="h-12 w-12 rounded-lg bg-[#FAF7F2] border border-gray-100 flex-shrink-0" />
                               )}

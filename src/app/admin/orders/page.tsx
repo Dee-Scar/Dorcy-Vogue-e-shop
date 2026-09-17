@@ -53,6 +53,7 @@ export default function OrdersPage() {
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selected, setSelected] = useState<string[]>([]);
   const [exportFrom, setExportFrom] = useState("");
   const [exportTo, setExportTo] = useState("");
 
@@ -125,6 +126,32 @@ export default function OrdersPage() {
     } catch (err) {
       console.error("Could not archive orders:", err);
       alert("Could not archive the orders. Please try again.");
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const toggleSelect = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const toggleSelectAll = () =>
+    setSelected((prev) => (prev.length === filtered.length ? [] : filtered.map((o) => o.id)));
+
+  // Archives (or restores) only the ticked orders.
+  const updateSelected = async (archive: boolean) => {
+    if (selected.length === 0) return;
+    setResetting(true);
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ archived_at: archive ? new Date().toISOString() : null })
+        .in("id", selected);
+      if (error) throw error;
+      setSelected([]);
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      console.error("Could not update the selected orders:", err);
+      alert("Could not update the selected orders. Please try again.");
     } finally {
       setResetting(false);
     }
@@ -297,7 +324,7 @@ export default function OrdersPage() {
             <span className="hidden sm:inline">Filter</span>
           </button>
           <button
-            onClick={() => setShowArchived(!showArchived)}
+            onClick={() => { setShowArchived(!showArchived); setSelected([]); }}
             className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 border rounded-xl text-sm font-sans font-medium transition-colors cursor-pointer ${
               showArchived
                 ? "bg-[#1C1512] text-white border-[#1C1512]"
@@ -382,12 +409,51 @@ export default function OrdersPage() {
           })}
         </div>
 
+        {selected.length > 0 && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 bg-[#1C1512] text-white rounded-xl px-4 py-3">
+            <p className="font-sans text-sm">
+              {selected.length} order{selected.length === 1 ? "" : "s"} selected
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSelected([])}
+                className="px-3 py-1.5 rounded-lg text-xs font-sans font-semibold bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => updateSelected(!showArchived)}
+                disabled={resetting}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-sans font-semibold bg-[#C9956A] hover:bg-[#A87A52] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {resetting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : showArchived ? (
+                  <RotateCcw className="h-3.5 w-3.5" />
+                ) : (
+                  <Archive className="h-3.5 w-3.5" />
+                )}
+                {showArchived ? "Restore selected" : "Archive selected"}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Orders Table */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px]">
               <thead>
                 <tr className="bg-[#FAF7F2] border-b border-gray-100">
+                  <th className="px-4 py-3.5 w-10">
+                    <input
+                      type="checkbox"
+                      checked={filtered.length > 0 && selected.length === filtered.length}
+                      onChange={toggleSelectAll}
+                      aria-label="Select all orders"
+                      className="h-4 w-4 rounded border-gray-300 accent-[#C9956A] cursor-pointer"
+                    />
+                  </th>
                   <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Order #/Customer</th>
                   <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Phone</th>
                   <th className="text-right px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider">Amount</th>
@@ -399,13 +465,22 @@ export default function OrdersPage() {
               <tbody className="divide-y divide-gray-50">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="py-16 text-center">
+                    <td colSpan={7} className="py-16 text-center">
                       <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#C9956A]" />
                     </td>
                   </tr>
                 ) : (
                   filtered.map((order) => (
                     <tr key={order.id} className="hover:bg-[#FAF7F2]/40 transition-colors">
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(order.id)}
+                          onChange={() => toggleSelect(order.id)}
+                          aria-label={`Select order ${order.id}`}
+                          className="h-4 w-4 rounded border-gray-300 accent-[#C9956A] cursor-pointer"
+                        />
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <p className="font-sans text-sm font-semibold text-[#C9956A]">{order.id}</p>
                         <p className="font-sans text-sm text-[#1C1512]">{order.customer}</p>
