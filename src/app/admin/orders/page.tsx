@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
-import { Search, Filter, Download, Eye, Loader2, X } from "lucide-react";
+import { Search, Filter, Download, Eye, Loader2, X, Archive, RotateCcw, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -46,16 +46,28 @@ export default function OrdersPage() {
 
   // Date range export modal
   const [showExportModal, setShowExportModal] = useState(false);
+
+  // Archive: reset clears the working list without deleting anything, so the
+  // dashboard totals (which count every row) stay intact.
+  const [showArchived, setShowArchived] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [exportFrom, setExportFrom] = useState("");
   const [exportTo, setExportTo] = useState("");
 
   useEffect(() => {
     async function fetchOrders() {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from("orders")
-          .select("id, full_name, email, phone, address, state, total_amount, status, created_at, order_items(product_name, quantity, size, color, price)")
+          .select("id, full_name, email, phone, address, state, total_amount, status, created_at, archived_at, order_items(product_name, quantity, size, color, price)")
           .order("created_at", { ascending: false });
+        query = showArchived
+          ? query.not("archived_at", "is", null)
+          : query.is("archived_at", null);
+
+        const { data, error } = await query;
 
         if (error) throw error;
 
@@ -97,7 +109,40 @@ export default function OrdersPage() {
       }
     }
     fetchOrders();
-  }, []);
+  }, [showArchived, refreshKey]);
+
+  // Reset moves every order currently listed into the archive.
+  const archiveAll = async () => {
+    setResetting(true);
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ archived_at: new Date().toISOString() })
+        .is("archived_at", null);
+      if (error) throw error;
+      setShowResetModal(false);
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      console.error("Could not archive orders:", err);
+      alert("Could not archive the orders. Please try again.");
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const restoreOrder = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ archived_at: null })
+        .eq("id", id);
+      if (error) throw error;
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      console.error("Could not restore order:", err);
+      alert("Could not restore that order. Please try again.");
+    }
+  };
 
   const formatDateInput = (value: string) => {
     const digits = value.replace(/\D/g, "");
@@ -252,6 +297,26 @@ export default function OrdersPage() {
             <span className="hidden sm:inline">Filter</span>
           </button>
           <button
+            onClick={() => setShowArchived(!showArchived)}
+            className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 border rounded-xl text-sm font-sans font-medium transition-colors cursor-pointer ${
+              showArchived
+                ? "bg-[#1C1512] text-white border-[#1C1512]"
+                : "bg-white text-[#1C1512] border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            <Archive className="h-4 w-4" />
+            <span className="hidden sm:inline">{showArchived ? "Active orders" : "Archived"}</span>
+          </button>
+          {!showArchived && (
+            <button
+              onClick={() => setShowResetModal(true)}
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-sans font-medium text-[#1C1512] hover:border-gray-300 transition-colors cursor-pointer"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span className="hidden sm:inline">Reset list</span>
+            </button>
+          )}
+          <button
             onClick={() => setShowExportModal(true)}
             className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white border border-[#C9956A] rounded-xl text-sm font-sans font-semibold transition-colors cursor-pointer">
             <Download className="h-4 w-4" />
@@ -259,6 +324,42 @@ export default function OrdersPage() {
           </button>
         </div>
       </header>
+
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-5">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-amber-50 rounded-full">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+              </div>
+              <div>
+                <h2 className="font-sans text-base font-semibold text-[#1C1512]">Reset the orders list?</h2>
+                <p className="font-sans text-sm text-[#8C8682] mt-1">
+                  All {allOrders.length} orders currently listed move to the archive, including any still
+                  awaiting payment or delivery. Nothing is deleted: your dashboard totals stay the same and
+                  you can restore any order from the Archived view.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowResetModal(false)}
+                disabled={resetting}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-sans font-medium text-[#1C1512] hover:border-gray-300 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={archiveAll}
+                disabled={resetting}
+                className="px-4 py-2 bg-[#C9956A] hover:bg-[#A87A52] text-white rounded-xl text-sm font-sans font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              >
+                {resetting ? <><Loader2 className="h-4 w-4 animate-spin" />Archiving...</> : "Archive all"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-0">
         {/* Status Tabs */}
@@ -330,6 +431,15 @@ export default function OrdersPage() {
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
+                        {showArchived && (
+                          <button
+                            onClick={() => restoreOrder(order.id)}
+                            title="Restore to active orders"
+                            className="inline-flex p-1.5 text-[#8C8682] hover:text-emerald-600 hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -340,7 +450,7 @@ export default function OrdersPage() {
 
           {!loading && filtered.length === 0 && (
             <div className="py-16 text-center">
-              <p className="font-sans text-sm text-[#8C8682]">No orders found.</p>
+              <p className="font-sans text-sm text-[#8C8682]">{showArchived ? "No archived orders." : "No orders found."}</p>
             </div>
           )}
         </div>

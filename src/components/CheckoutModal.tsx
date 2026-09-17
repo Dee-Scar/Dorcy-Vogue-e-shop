@@ -118,6 +118,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
         color: item.color || "Default",
         quantity: item.quantity,
         price: item.price,
+        product_image: item.image,
       }));
 
       const { error: itemsError } = await supabase

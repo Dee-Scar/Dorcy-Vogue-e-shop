@@ -66,7 +66,7 @@ export default function AdminDashboardPage() {
         // Fetch all orders
         const { data: orders, error } = await supabase
           .from("orders")
-          .select("id, status, payment_status, total_amount, created_at, full_name, email, phone")
+          .select("id, status, payment_status, total_amount, created_at, full_name, email, phone, archived_at")
           .order("created_at", { ascending: false });
 
         if (error) {
@@ -140,7 +140,11 @@ export default function AdminDashboardPage() {
         ]);
 
         // Recent orders (top 5)
-        const recent: RecentOrder[] = allOrders.slice(0, 5).map((o) => ({
+        // Totals above intentionally count every order, archived included.
+        const recent: RecentOrder[] = allOrders
+          .filter((o: any) => !o.archived_at)
+          .slice(0, 5)
+          .map((o) => ({
           id: o.id,
           customer: o.full_name || o.email || "Unknown",
           amount: "₦" + Number(o.total_amount || 0).toLocaleString(),

@@ -20,6 +20,7 @@ interface OrderItem {
   color: string;
   qty: number;
   price: number;
+  image?: string;
 }
 
 interface OrderDetail {
@@ -68,7 +69,29 @@ export default function OrderDetailsPage() {
             color: item.color || "—",
             qty: item.quantity || 1,
             price: Number(item.price || 0),
+            image: item.product_image || "",
           }));
+
+          // Orders placed before images were snapshotted still have the product
+          // id, so look the picture up from the product record for those.
+          const rawItems: any[] = data.order_items || [];
+          const missing = items
+            .map((it, i) => (it.image ? -1 : i))
+            .filter((i) => i >= 0);
+          if (missing.length > 0) {
+            const ids = missing.map((i) => rawItems[i]?.product_id).filter(Boolean);
+            if (ids.length > 0) {
+              const { data: prods } = await supabase
+                .from("products")
+                .select("id,image")
+                .in("id", ids);
+              const byId = new Map((prods || []).map((p: any) => [p.id, p.image]));
+              missing.forEach((i) => {
+                const found = byId.get(rawItems[i]?.product_id);
+                if (found) items[i].image = found as string;
+              });
+            }
+          }
 
           setOrder({
             id: data.id,
@@ -382,7 +405,17 @@ export default function OrderDetailsPage() {
                     ) : (
                       order.items.map((item, index) => (
                         <tr key={index}>
-                          <td className="px-6 py-4 font-semibold text-[#1C1512] font-sans whitespace-nowrap">{item.name}</td>
+                          <td className="px-6 py-4 font-semibold text-[#1C1512] font-sans whitespace-nowrap">
+                            <div className="flex items-center gap-3">
+                              {item.image ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img src={item.image} alt={item.name} className="h-12 w-12 rounded-lg object-cover border border-gray-100 flex-shrink-0" />
+                              ) : (
+                                <div className="h-12 w-12 rounded-lg bg-[#FAF7F2] border border-gray-100 flex-shrink-0" />
+                              )}
+                              <span>{item.name}</span>
+                            </div>
+                          </td>
                           <td className="px-4 py-4 text-center font-sans whitespace-nowrap">{item.size}</td>
                           <td className="px-4 py-4 text-center font-sans whitespace-nowrap">{item.color}</td>
                           <td className="px-4 py-4 text-center font-semibold text-[#1C1512] font-sans whitespace-nowrap">{item.qty}</td>
