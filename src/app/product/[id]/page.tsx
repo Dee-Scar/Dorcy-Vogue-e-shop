@@ -539,7 +539,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             </div>
             <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none -mx-4 px-4 pb-2 sm:mx-0 sm:px-0 sm:pb-0 sm:overflow-visible sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {relatedProducts.map((rp) => (
-                <div key={rp.id} className="snap-start shrink-0 w-[68%] sm:w-auto">
+                <div key={rp.id} className="snap-start shrink-0 w-[calc(50%-0.5rem)] sm:w-auto">
                   <ProductCard product={rp} />
                 </div>
               ))}
