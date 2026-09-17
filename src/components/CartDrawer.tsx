@@ -103,7 +103,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onCheckout }) => {
                         alt={item.name}
                         fill
                         sizes="80px"
-                        className="object-contain"
+                        className="object-cover"
                       />
                     </div>
 
