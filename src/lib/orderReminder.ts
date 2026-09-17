@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 const FROM_EMAIL = "Dorcy Vogue <notifications@dorcyvogue.com>";
 const WHATSAPP_NUMBER = "2349071262856";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://dorcyvogue.com";
-const REMINDER_DELAY_MINUTES = 2; // TEMPORARY: set back to 20 once testing confirms it works
+const REMINDER_DELAY_MINUTES = 10;
 
 function admin() {
   return createClient(
@@ -95,7 +95,7 @@ function reminderHtml(orderId: string, customerName: string, amount: number) {
 }
 
 /**
- * Schedules the "your order is waiting" email for 20 minutes after checkout.
+ * Schedules the "your order is waiting" email for 10 minutes after checkout.
  * Resend holds it and we cancel it if the customer uploads a receipt in time,
  * so nothing has to poll the database on a schedule.
  */
