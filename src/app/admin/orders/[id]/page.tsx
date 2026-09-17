@@ -50,6 +50,7 @@ export default function OrderDetailsPage() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [tempDriverName, setTempDriverName] = useState("");
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [lightbox, setLightbox] = useState<{ src: string; name: string } | null>(null);
 
   useEffect(() => {
     async function fetchOrder() {
@@ -409,10 +410,15 @@ export default function OrderDetailsPage() {
                             <div className="flex items-center gap-3">
                               {item.image ? (
                                 /* eslint-disable-next-line @next/next/no-img-element */
-                                <a href={item.image} target="_blank" rel="noopener noreferrer" title="Open full size">
+                                <button
+                                  type="button"
+                                  onClick={() => setLightbox({ src: item.image as string, name: item.name })}
+                                  title="View product photo"
+                                  className="flex-shrink-0"
+                                >
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={item.image} alt={item.name} className="h-12 w-12 rounded-lg object-cover border border-gray-100 flex-shrink-0 hover:ring-2 hover:ring-[#C9956A] transition-all cursor-pointer" />
-                                </a>
+                                  <img src={item.image} alt={item.name} className="h-12 w-12 rounded-lg object-cover border border-gray-100 hover:ring-2 hover:ring-[#C9956A] transition-all cursor-pointer" />
+                                </button>
                               ) : (
                                 <div className="h-12 w-12 rounded-lg bg-[#FAF7F2] border border-gray-100 flex-shrink-0" />
                               )}
@@ -671,6 +677,33 @@ export default function OrderDetailsPage() {
                   className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-sm"
                 />
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {lightbox && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={() => setLightbox(null)}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm cursor-pointer"
+          />
+          <div className="relative z-10 bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
+              <h3 className="font-sans text-sm font-semibold text-[#1C1512]">{lightbox.name}</h3>
+              <button
+                onClick={() => setLightbox(null)}
+                className="p-1.5 text-[#8C8682] hover:text-[#1C1512] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-4 flex items-center justify-center bg-[#FAF7F2] min-h-[400px] max-h-[75vh] overflow-auto">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={lightbox.src}
+                alt={lightbox.name}
+                className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-sm"
+              />
             </div>
           </div>
         </div>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
-import { Search, Filter, Download, Eye, Loader2, X, Archive, RotateCcw, AlertTriangle } from "lucide-react";
+import { Search, Filter, Download, Eye, Loader2, X, Archive, RotateCcw, AlertTriangle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -54,6 +54,10 @@ export default function OrdersPage() {
   const [resetting, setResetting] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [selected, setSelected] = useState<string[]>([]);
+
+  // Ids queued for deletion; null closes the confirm dialog.
+  const [deleteTarget, setDeleteTarget] = useState<string[] | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [exportFrom, setExportFrom] = useState("");
   const [exportTo, setExportTo] = useState("");
 
@@ -154,6 +158,34 @@ export default function OrdersPage() {
       alert("Could not update the selected orders. Please try again.");
     } finally {
       setResetting(false);
+    }
+  };
+
+  // Deleting is permanent and, unlike archiving, removes the order from the
+  // dashboard totals as well. Row level security also has to allow it: without
+  // a delete policy Postgres removes nothing and reports no error, so ask for
+  // the deleted ids back and treat an empty result as a failure.
+  const confirmDelete = async () => {
+    if (!deleteTarget || deleteTarget.length === 0) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .delete()
+        .in("id", deleteTarget)
+        .select("id");
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Nothing was deleted. The admin delete policy is missing in Supabase.");
+      }
+      setSelected((prev) => prev.filter((id) => !deleteTarget.includes(id)));
+      setDeleteTarget(null);
+      setRefreshKey((k) => k + 1);
+    } catch (err: any) {
+      console.error("Could not delete orders:", err);
+      alert(err?.message || "Could not delete those orders. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -352,6 +384,44 @@ export default function OrdersPage() {
         </div>
       </header>
 
+      {deleteTarget && deleteTarget.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-5">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-red-50 rounded-full">
+                <Trash2 className="h-5 w-5 text-red-500" />
+              </div>
+              <div>
+                <h2 className="font-sans text-base font-semibold text-[#1C1512]">
+                  Delete {deleteTarget.length === 1 ? `order ${deleteTarget[0]}` : `${deleteTarget.length} orders`}?
+                </h2>
+                <p className="font-sans text-sm text-[#8C8682] mt-1">
+                  This cannot be undone. The order and its items are removed for good, and your dashboard
+                  revenue and order counts will drop accordingly. To clear the list while keeping the
+                  figures, archive instead.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-sans font-medium text-[#1C1512] hover:border-gray-300 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-sans font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              >
+                {deleting ? <><Loader2 className="h-4 w-4 animate-spin" />Deleting...</> : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showResetModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-5">
@@ -435,6 +505,14 @@ export default function OrdersPage() {
                 )}
                 {showArchived ? "Restore selected" : "Archive selected"}
               </button>
+              <button
+                onClick={() => setDeleteTarget(selected)}
+                disabled={deleting}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-sans font-semibold bg-red-500 hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete selected
+              </button>
             </div>
           </div>
         )}
@@ -515,6 +593,13 @@ export default function OrdersPage() {
                             <RotateCcw className="h-4 w-4" />
                           </button>
                         )}
+                        <button
+                          onClick={() => setDeleteTarget([order.id])}
+                          title="Delete this order"
+                          className="inline-flex p-1.5 text-[#8C8682] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   ))
