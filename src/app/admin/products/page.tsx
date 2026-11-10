@@ -27,6 +27,8 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -65,11 +67,53 @@ export default function ProductsPage() {
       const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) throw error;
       setProducts(products.filter(p => p.id !== id));
+      setSelectedIds(selectedIds.filter(sid => sid !== id));
       alert("Product deleted successfully");
     } catch (err) {
       console.error("Error deleting product:", err);
       alert("Failed to delete product");
     }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} product(s)?`)) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .in("id", selectedIds);
+      
+      if (error) throw error;
+      
+      setProducts(products.filter(p => !selectedIds.includes(p.id)));
+      setSelectedIds([]);
+      alert(`Successfully deleted ${selectedIds.length} product(s)`);
+    } catch (err) {
+      console.error("Error deleting products:", err);
+      alert("Failed to delete some products");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filtered.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filtered.map(p => p.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) 
+        ? prev.filter(sid => sid !== id)
+        : [...prev, id]
+    );
   };
 
   const filtered = products.filter(
@@ -102,6 +146,27 @@ export default function ProductsPage() {
               <Filter className="h-4 w-4" />
               <span className="hidden sm:inline">Filter</span>
             </button>
+            
+            {/* Bulk Delete Button */}
+            {selectedIds.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                disabled={isDeleting}
+                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white border border-red-600 rounded-xl text-sm font-sans font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" />
+                    <span>Delete ({selectedIds.length})</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           <Link
@@ -135,6 +200,14 @@ export default function ProductsPage() {
             <table className="w-full min-w-[900px]">
               <thead>
                 <tr className="bg-[#FAF7F2] border-b border-gray-100">
+                  <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider whitespace-nowrap w-12">
+                    <input
+                      type="checkbox"
+                      checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-gray-300 text-[#C9956A] focus:ring-[#C9956A] cursor-pointer"
+                    />
+                  </th>
                   <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider whitespace-nowrap">Product</th>
                   <th className="text-left px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider whitespace-nowrap">Category</th>
                   <th className="text-right px-6 py-3.5 font-sans text-xs font-semibold text-[#8C8682] uppercase tracking-wider whitespace-nowrap">Price</th>
@@ -146,19 +219,27 @@ export default function ProductsPage() {
               <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-16 text-center">
+                  <td colSpan={7} className="py-16 text-center">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#C9956A]" />
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-16 text-center">
+                  <td colSpan={7} className="py-16 text-center">
                     <p className="font-sans text-sm text-[#8C8682]">No products found.</p>
                   </td>
                 </tr>
               ) : (
                 filtered.map((product) => (
                   <tr key={product.id} className="hover:bg-[#FAF7F2]/40 transition-colors">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(product.id)}
+                        onChange={() => toggleSelect(product.id)}
+                        className="w-4 h-4 rounded border-gray-300 text-[#C9956A] focus:ring-[#C9956A] cursor-pointer"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-[#FAF7F2] border border-gray-100 overflow-hidden flex-shrink-0">
