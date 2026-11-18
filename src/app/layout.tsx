@@ -4,6 +4,7 @@ import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -94,6 +95,7 @@ export default function RootLayout({
             <ScrollToTop />
           </CartProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
